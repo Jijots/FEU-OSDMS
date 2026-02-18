@@ -20,7 +20,7 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-500">
                     <h3 class="font-bold text-gray-400 text-xs uppercase mb-4">Reported Lost Item</h3>
                     <div class="h-64 bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                        <img src="{{ asset('storage/' . $item->image_path) }}" class="object-cover h-full w-full">
+                        <img src="{{ asset($item->image_path) }}" class="object-cover h-full w-full">
                     </div>
                     <p class="font-bold text-lg">{{ $item->item_category }}</p>
                     <p class="text-gray-600">{{ $item->description }}</p>
@@ -29,11 +29,11 @@
                 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500">
                     <h3 class="font-bold text-gray-400 text-xs uppercase mb-4">Found Item (Scanned)</h3>
                     <div class="h-64 bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                        <img src="{{ asset('storage/samples/found_sample.jpg') }}" class="object-cover h-full w-full">
+                        <img src="{{ asset('samples/found_hirono.jpg') }}" class="object-cover h-full w-full">
                     </div>
                     <p class="font-bold text-lg">Visual Analysis</p>
                     <p class="text-gray-600 text-sm mt-2">
-                        Features Detected: {{ implode(', ', $match->keypoints ?? ['Color', 'Shape', 'Texture']) }}
+                        Features Detected: {{ implode(', ', $match->keypoints ?? ['Color', 'Shape']) }}
                     </p>
                 </div>
             </div>

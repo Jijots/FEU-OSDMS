@@ -18,20 +18,20 @@ class AssetMatchingController extends Controller
     {
         $lostItem = LostItem::findOrFail($id);
 
-        // 1. Get the path to the 'Found' photo (Simulating the camera scan)
-        $foundImagePath = storage_path('app/public/samples/found_hirono.jpg'); //
+        // FIXED: Use public_path() because your files are in the 'public' folder
+        $foundImagePath = public_path('samples/found_hirono.jpg');
+        $lostImagePath = public_path($lostItem->image_path);
 
-        // 2. Get the path to the 'Lost' photo (From the database)
-        $lostImagePath = storage_path('app/public/' . $lostItem->image_path);
+        // Debugging: Check if files actually exist before running Python
+        if (!file_exists($foundImagePath) || !file_exists($lostImagePath)) {
+            return back()->with('error', 'Image files not found. Check public folder.');
+        }
 
-        // 3. Setup Python Script
-        $python = env('PYTHON_PATH', 'python'); // Defaults to 'python' if .env is missing it
+        $python = env('PYTHON_PATH', 'python');
         $script = resource_path('scripts/visual_matcher.py');
 
-        // 4. Run the AI Comparison
         $result = Process::run([$python, $script, $lostImagePath, $foundImagePath]);
 
-        // 5. Decode results
         $output = $result->output();
         $matchData = json_decode($output) ?? (object)['match_score' => 0, 'keypoints' => []];
 
