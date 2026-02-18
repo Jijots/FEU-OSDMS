@@ -6,5 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class GateEntry extends Model
 {
-    protected $fillable = ['student_id', 'guard_id', 'reason', 'time_in'];
+    // Added 'time_out' to fillable to match your migration
+    protected $fillable = ['student_id', 'guard_id', 'reason', 'time_in', 'time_out'];
+
+    public function student()
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function guard()
+    {
+        return $this->belongsTo(User::class, 'guard_id');
+    }
 }
