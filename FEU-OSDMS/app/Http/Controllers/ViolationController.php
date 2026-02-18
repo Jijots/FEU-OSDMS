@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class ViolationController extends Controller
 {
+    public function index()
+    {
+        // For debugging/listing raw violations if needed
+        return Violation::with('student')->latest()->get();
+    }
+
     public function create()
     {
         $students = User::where('role', 'student')->get();
@@ -26,7 +32,8 @@ class ViolationController extends Controller
             'student_id' => $request->student_id,
             'offense_type' => $request->offense_type,
             'status' => $request->status,
-            'reporter_id' => auth()->id(), // Fixed: Use 'reporter_id' to match your database
+            'reporter_id' => auth()->id(), // FIXED: Matches your database column
+            'description' => $request->description ?? null,
         ]);
 
         return redirect()->route('dashboard')->with('success', 'Violation recorded!');

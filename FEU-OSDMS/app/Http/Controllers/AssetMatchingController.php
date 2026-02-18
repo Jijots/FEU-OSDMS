@@ -18,17 +18,22 @@ class AssetMatchingController extends Controller
     {
         $lostItem = LostItem::findOrFail($id);
 
-        // Path to the 'Found' photo uploaded by a Guard to compare against the 'Lost' report
-        $foundImagePath = storage_path('app/public/samples/found_sample.jpg');
+        // 1. Get the path to the 'Found' photo (Simulating the camera scan)
+        $foundImagePath = storage_path('app/public/samples/found_hirono.jpg'); //
+
+        // 2. Get the path to the 'Lost' photo (From the database)
         $lostImagePath = storage_path('app/public/' . $lostItem->image_path);
 
-        $python = env('PYTHON_PATH');
+        // 3. Setup Python Script
+        $python = env('PYTHON_PATH', 'python'); // Defaults to 'python' if .env is missing it
         $script = resource_path('scripts/visual_matcher.py');
 
-        // Execute your OpenCV Visual Matcher script
+        // 4. Run the AI Comparison
         $result = Process::run([$python, $script, $lostImagePath, $foundImagePath]);
 
-        $matchData = json_decode($result->output());
+        // 5. Decode results
+        $output = $result->output();
+        $matchData = json_decode($output) ?? (object)['match_score' => 0, 'keypoints' => []];
 
         return view('assets.show', [
             'item' => $lostItem,

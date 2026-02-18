@@ -14,7 +14,8 @@ class GateEntry extends Model
         return $this->belongsTo(User::class, 'student_id');
     }
 
-    public function guard()
+    // RENAMED from 'guard' to 'securityGuard' to fix the FatalError
+    public function securityGuard()
     {
         return $this->belongsTo(User::class, 'guard_id');
     }
