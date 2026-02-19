@@ -1,58 +1,82 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-xl text-gray-800 leading-tight">Student Directory</h2>
+        <h2 class="font-bold text-2xl text-gray-800">👥 Student Directory</h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                
-                <form method="GET" action="{{ route('students.index') }}" class="mb-6">
-                    <div class="flex gap-2">
-                        <input type="text" name="search" value="{{ $search }}" 
-                               placeholder="Search by ID Number or Name..." 
-                               class="w-full border-gray-300 rounded-lg shadow-sm focus:border-green-500 focus:ring-green-500">
-                        <button type="submit" class="bg-green-700 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-800">
-                            Search
-                        </button>
-                    </div>
+    <div class="p-6 bg-gray-50 min-h-screen">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Search Section -->
+            <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                <form method="GET" action="{{ route('students.index') }}" class="flex gap-2">
+                    <input type="text" name="search" value="{{ $search ?? '' }}"
+                           placeholder="🔍 Search by ID or Name..."
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:border-green-500 focus:ring-green-500 focus:outline-none">
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition">
+                        Search
+                    </button>
                 </form>
+            </div>
+
+            <!-- Students Table/Cards -->
+            @if($students->count() > 0)
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <p class="text-sm text-gray-600">
+                        Found <span class="font-bold text-green-600">{{ $students->count() }}</span> student(s)
+                    </p>
+                </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-50 border-b">
-                                <th class="p-4 font-bold text-gray-600">ID Number</th>
-                                <th class="p-4 font-bold text-gray-600">Name</th>
-                                <th class="p-4 font-bold text-gray-600">Program</th>
-                                <th class="p-4 font-bold text-gray-600 text-right">Action</th>
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 text-left font-bold text-gray-600 text-xs uppercase">🆔 ID Number</th>
+                                <th class="p-4 text-left font-bold text-gray-600 text-xs uppercase">👤 Name</th>
+                                <th class="p-4 text-left font-bold text-gray-600 text-xs uppercase">📚 Program</th>
+                                <th class="p-4 text-left font-bold text-gray-600 text-xs uppercase">🏫 Campus</th>
+                                <th class="p-4 text-center font-bold text-gray-600 text-xs uppercase">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @forelse($students as $student)
-                                <tr class="border-b hover:bg-gray-50 transition">
-                                    <td class="p-4 font-mono text-sm">{{ $student->id_number }}</td>
-                                    <td class="p-4 font-semibold">{{ $student->name }}</td>
-                                    <td class="p-4 text-sm">{{ $student->program_code ?? 'N/A' }}</td>
-                                    <td class="p-4 text-right">
-                                        <a href="{{ route('students.show', $student->id) }}" class="text-blue-600 hover:underline font-bold text-sm">
-                                            View Profile →
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach($students as $student)
+                                <tr class="hover:bg-green-50 transition">
+                                    <td class="p-4 font-mono text-gray-800">{{ $student->id_number }}</td>
+                                    <td class="p-4 font-semibold text-gray-800">{{ $student->name }}</td>
+                                    <td class="p-4 text-gray-600">{{ $student->program_code ?? '—' }}</td>
+                                    <td class="p-4 text-gray-600">{{ $student->campus ?? 'Manila' }}</td>
+                                    <td class="p-4 text-center">
+                                        <a href="{{ route('students.show', $student->id) }}"
+                                           class="inline-block px-3 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-lg text-xs font-bold transition">
+                                            View Profile
                                         </a>
                                     </td>
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="4" class="p-8 text-center text-gray-400 italic">No students found matching your search.</td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
 
-                <div class="mt-4">
-                    {{ $students->appends(['search' => $search])->links() }}
+                <!-- Pagination -->
+                @if($students instanceof \Illuminate\Pagination\Paginator)
+                <div class="p-6 border-t border-gray-100">
+                    {{ $students->appends(['search' => $search ?? ''])->links() }}
                 </div>
+                @endif
             </div>
+            @else
+            <div class="bg-white rounded-lg shadow-sm text-center py-16">
+                <p class="text-4xl mb-4">🔍</p>
+                <p class="text-lg font-semibold text-gray-700 mb-2">No Students Found</p>
+                <p class="text-gray-500">
+                    @if($search)
+                        Try adjusting your search term for "{{ $search }}"
+                    @else
+                        No students are currently registered in the system.
+                    @endif
+                </p>
+            </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
@@ -60,20 +84,12 @@
 <script>
     let timeout = null;
     const searchInput = document.querySelector('input[name="search"]');
-    const searchForm = searchInput.closest('form');
-
-    searchInput.addEventListener('keyup', function() {
-        clearTimeout(timeout);
-        
-        // Wait 500ms after typing stops to avoid spamming the server
-        timeout = setTimeout(() => {
-            searchForm.submit();
-        }, 500);
-    });
-
-    // Keep the cursor at the end of the text after the page reloads
-    const val = searchInput.value;
-    searchInput.value = '';
-    searchInput.focus();
-    searchInput.value = val;
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                searchInput.closest('form').submit();
+            }, 500);
+        });
+    }
 </script>
