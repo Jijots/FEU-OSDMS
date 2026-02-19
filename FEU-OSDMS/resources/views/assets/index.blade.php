@@ -1,68 +1,55 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800">🔍 IntelliThings - Lost & Found</h2>
-    </x-slot>
+    <x-slot name="header">IntelliThings Asset Database</x-slot>
 
-    <div class="p-6 bg-gray-50 min-h-screen">
-        <div class="max-w-7xl mx-auto">
-
-            <!-- Header Section -->
-            <div class="mb-6 flex items-center justify-between">
-                <p class="text-gray-600">Manage and match lost items using AI visual recognition</p>
-                <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">
-                    + Report Lost Item
-                </button>
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-black text-gray-900 tracking-tight">Reported Lost Items</h2>
+                <p class="text-sm text-gray-500 font-medium mt-1">Manage campus property and initiate AI matching protocols.</p>
             </div>
+            <a href="{{ route('assets.create') }}" class="px-6 py-3 bg-feu-green hover:bg-feu-green-dark text-white font-bold rounded-xl shadow-lg flex items-center gap-2 transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Report New Item
+            </a>
+        </div>
 
-            <!-- Items Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                @forelse($items as $item)
-                <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition overflow-hidden">
-                    <!-- Image Container -->
-                    <div class="h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative group">
-                        @if($item->image_path)
-                            <img src="{{ asset('storage/' . $item->image_path) }}" alt="{{ $item->item_category }}" class="w-full h-full object-cover">
-                        @else
-                            <span class="text-6xl">📦</span>
-                        @endif
-
-                        <!-- Status Badge -->
-                        <div class="absolute top-3 right-3">
-                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white {{ $item->is_claimed ? 'bg-green-600' : 'bg-red-600' }}">
-                                {{ $item->is_claimed ? '✓ Claimed' : '✗ Lost' }}
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Card Content -->
-                    <div class="p-4">
-                        <h3 class="font-bold text-lg text-gray-800 mb-1">{{ $item->item_category }}</h3>
-                        <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ $item->description }}</p>
-
-                        <!-- Item Details -->
-                        <div class="text-xs text-gray-500 space-y-1 mb-4">
-                            <p>📍 Found at: <span class="font-semibold text-gray-700">{{ $item->location_found }}</span></p>
-                            <p>👤 Found by: <span class="font-semibold text-gray-700">{{ $item->founder->name ?? 'N/A' }}</span></p>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex gap-2">
-                            <a href="{{ route('assets.compare', $item->id) }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg text-xs uppercase transition text-center">
-                                🚀 Run AI Match
-                            </a>
-                            <button class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded-lg text-xs uppercase transition">
-                                ℹ View Details
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div class="col-span-full text-center py-16">
-                    <p class="text-4xl mb-4">📭</p>
-                    <p class="text-xl font-semibold text-gray-700 mb-2">No Lost Items Yet</p>
-                    <p class="text-gray-500">There are currently no lost items in the system. Items will appear here once reported.</p>
-                </div>
-                @endforelse
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-200 text-[10px] uppercase tracking-[0.2em] font-black text-gray-400">
+                            <th class="px-8 py-5">Preview</th>
+                            <th class="px-8 py-5">Item Name</th>
+                            <th class="px-8 py-5">Description</th>
+                            <th class="px-8 py-5 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse($items as $item)
+                        <tr class="hover:bg-gray-50/50 transition-colors">
+                            <td class="px-8 py-5">
+                                <div class="w-20 h-20 rounded-2xl bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
+                                    <img src="{{ asset($item->image_path) }}" alt="Item" class="object-cover w-full h-full">
+                                </div>
+                            </td>
+                            <td class="px-8 py-5 font-bold text-gray-900 text-lg">{{ $item->item_category }}</td>
+                            <td class="px-8 py-5 text-gray-500 text-sm max-w-sm leading-relaxed">{{ $item->description }}</td>
+                            <td class="px-8 py-5 text-right">
+                                <div class="flex justify-end items-center gap-3">
+                                    <a href="{{ route('assets.edit', $item->id) }}" class="p-2 text-gray-400 hover:text-feu-green transition-all">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                    </a>
+                                    <a href="{{ route('assets.compare', $item->id) }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-bold text-gray-700 hover:bg-feu-green hover:text-white hover:border-feu-green transition-all shadow-sm">
+                                        Run AI Match
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr><td colspan="4" class="px-8 py-20 text-center text-gray-400 font-bold uppercase tracking-widest text-xs">No records found</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

@@ -4,65 +4,69 @@ namespace App\Http\Controllers;
 
 use App\Models\LostItem;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Process;
-use Illuminate\Support\Facades\Log;
 
 class AssetMatchingController extends Controller
 {
-    public function index()
-    {
+    public function index() {
         $items = LostItem::latest()->get();
         return view('assets.index', compact('items'));
     }
 
- public function compare(Request $request, $id)
-    {
-        $lostItem = LostItem::findOrFail($id);
+    public function create() {
+        return view('assets.create');
+    }
 
+    public function store(Request $request) {
+        $validated = $request->validate([
+            'item_category' => 'required|string|max:255',
+            'description' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:10240',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('lost_items', 'public');
+            LostItem::create([
+                'item_category' => $validated['item_category'],
+                'description' => $validated['description'],
+                'image_path' => 'storage/' . $path,
+            ]);
+            return redirect()->route('assets.index')->with('success', 'Report Saved.');
+        }
+        return back();
+    }
+
+    public function edit($id) {
+        $item = LostItem::findOrFail($id);
+        return view('assets.edit', compact('item'));
+    }
+
+    public function update(Request $request, $id) {
+        $item = LostItem::findOrFail($id);
+        $validated = $request->validate([
+            'item_category' => 'required|string',
+            'description' => 'required|string',
+        ]);
+        $item->update($validated);
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('lost_items', 'public');
+            $item->update(['image_path' => 'storage/' . $path]);
+        }
+        return redirect()->route('assets.index');
+    }
+
+    public function compare(Request $request, $id) {
+        $lostItem = LostItem::findOrFail($id);
         $foundImagePath = public_path('samples/found_hirono.jpg');
         $lostImagePath = public_path($lostItem->image_path);
 
-        if (!file_exists($foundImagePath) || !file_exists($lostImagePath)) {
-            return back()->with('error', 'Image files not found. Check public folder.');
-        }
-
-        // We use env('PYTHON_PATH') or default to 'python'
-        $python = env('PYTHON_PATH', 'python');
         $script = resource_path('scripts/visual_matcher.py');
-
-        // Run the process with timeout and robust error handling
-        try {
-            $result = Process::timeout(60)->run([$python, $script, $lostImagePath, $foundImagePath]);
-        } catch (\Throwable $e) {
-            Log::error('Matcher process exception: ' . $e->getMessage());
-            return back()->with('error', 'Matcher execution failed.');
-        }
-
-        if ($result->failed() || empty($result->output())) {
-            Log::error('Matcher failed', [
-                'error_output' => $result->errorOutput(),
-                'command' => "$python $script $lostImagePath $foundImagePath"
-            ]);
-            return back()->with('error', 'Asset matching failed. See logs for details.');
-        }
-
-        $output = $result->output();
+        $command = "python " . escapeshellarg($script) . " " . escapeshellarg($lostImagePath) . " " . escapeshellarg($foundImagePath) . " 2>&1";
+        $output = shell_exec($command);
         $decoded = json_decode($output, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('Matcher produced invalid JSON', ['output' => $output, 'json_error' => json_last_error_msg()]);
-            $matchData = (object)[
-                'visual_similarity' => 0,
-                'breakdown' => 'Invalid matcher output',
-                'error' => 'JSON Decode Error'
-            ];
-        } else {
-            $matchData = (object)$decoded;
-        }
 
         return view('assets.show', [
             'item' => $lostItem,
-            'match' => $matchData
+            'match' => (object)($decoded ?? ['visual_similarity' => 0, 'breakdown' => 'Analysis Failed'])
         ]);
     }
 }
