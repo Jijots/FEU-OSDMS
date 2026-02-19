@@ -5,36 +5,48 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'FEU-OSDMS') }}</title>
+        <title>FEU Main OSDMS</title>
 
-        <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900&display=swap" rel="stylesheet" />
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['Inter', 'sans-serif'],
+                        },
+                        colors: {
+                            'feu-green': '#006341',
+                            'feu-green-dark': '#004d32',
+                            'feu-gold': '#FDBA31',
+                            'feu-gold-light': '#ffd675',
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
-    <body class="font-sans antialiased">
-        <div class="flex h-screen bg-gray-50">
-            <!-- Include Sidebar Navigation -->
+    <body class="font-sans antialiased bg-gray-50 text-gray-900">
+        <div class="min-h-screen flex flex-col">
+
             @include('layouts.navigation')
 
-            <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col ml-0 md:ml-72 transition-all duration-300 overflow-hidden">
-                <!-- Page Header -->
-                @isset($header)
-                    <header class="bg-white shadow-sm border-b border-gray-100 flex-shrink-0">
-                        <div class="max-w-full py-6 px-4 sm:px-6 lg:px-8">
-                            {{ $header }}
-                        </div>
-                    </header>
-                @endisset
+            @isset($header)
+                <header class="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endisset
 
-                <!-- Page Content -->
-                <main class="flex-1 overflow-y-auto">
-                    {{ $slot }}
-                </main>
-            </div>
+            <main class="flex-1 w-full">
+                {{ $slot }}
+            </main>
         </div>
     </body>
 </html>

@@ -1,97 +1,49 @@
-<!-- Vertical Green Sidebar Navigation -->
-<nav x-data="{ sidebarOpen: window.innerWidth >= 768 }"
-     class="fixed left-0 top-0 h-screen w-64 md:w-72 bg-gradient-to-b from-green-700 to-green-900 shadow-lg z-40 overflow-y-auto transition-all duration-300"
-     :class="{ 'w-0': !sidebarOpen, 'w-64 md:w-72': sidebarOpen }"
-     @resize.window="sidebarOpen = window.innerWidth >= 768">
-
-    <!-- Sidebar Header with Logo/Profile -->
-    <div class="p-6 border-b border-green-600">
-        <div class="flex items-center justify-between mb-4">
-            <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-green-900">
-                    🛡️
+<nav x-data="{ open: false }" class="bg-feu-green border-b border-feu-green-dark shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex">
+                <div class="shrink-0 flex items-center gap-3">
+                    <div class="w-10 h-10 bg-feu-gold rounded flex items-center justify-center font-black text-feu-green text-xl shadow-inner">
+                        F
+                    </div>
+                    <a href="{{ route('dashboard') }}" class="font-black text-2xl tracking-tight text-white">
+                        FEU<span class="text-feu-gold"> OSDMS</span>
+                    </a>
                 </div>
-                <span class="text-white font-bold text-lg hidden md:inline">OSD</span>
-            </a>
-            <button @click="sidebarOpen = false" class="md:hidden text-white hover:text-gray-200">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        <div class="text-white text-sm">
-            <div class="font-semibold">{{ Auth::user()->name }}</div>
-            <div class="text-green-200 text-xs">{{ ucfirst(Auth::user()->role) }}</div>
-        </div>
-    </div>
 
-    <!-- Navigation Links -->
-    <div class="px-4 py-6 space-y-2">
-        <a href="{{ route('dashboard') }}"
-           class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('dashboard') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-            <span class="text-lg mr-3">📊</span>
-            <span>Dashboard</span>
-        </a>
+                <div class="hidden sm:space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-feu-gold text-feu-gold' : 'border-transparent text-gray-200 hover:text-white hover:border-gray-300' }} text-sm font-semibold transition">
+                        Dashboard
+                    </a>
+                    <a href="{{ route('assets.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('assets.*') ? 'border-feu-gold text-feu-gold' : 'border-transparent text-gray-200 hover:text-white hover:border-gray-300' }} text-sm font-semibold transition">
+                        IntelliThings
+                    </a>
+                    <a href="{{ route('students.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('students.*') ? 'border-feu-gold text-feu-gold' : 'border-transparent text-gray-200 hover:text-white hover:border-gray-300' }} text-sm font-semibold transition">
+                        Student Profiles
+                    </a>
+                    <a href="{{ route('gate.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('gate.*') ? 'border-feu-gold text-feu-gold' : 'border-transparent text-gray-200 hover:text-white hover:border-gray-300' }} text-sm font-semibold transition">
+                        Gate Entry Log
+                    </a>
+                </div>
+            </div>
 
-        <a href="{{ route('assets.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('assets.*') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-            <span class="text-lg mr-3">🔍</span>
-            <span>IntelliThings</span>
-        </a>
-
-        <a href="{{ route('students.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('students.*') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-            <span class="text-lg mr-3">👥</span>
-            <span>Students</span>
-        </a>
-
-        <a href="{{ route('gate.index') }}"
-           class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('gate.*') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-            <span class="text-lg mr-3">🚪</span>
-            <span>Gate Log</span>
-        </a>
-
-        @auth
-            @if(Auth::user()->role === 'admin')
-            <a href="{{ route('violations.index') }}"
-               class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('violations.*') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-                <span class="text-lg mr-3">⚠️</span>
-                <span>Violations</span>
-            </a>
-
-            <a href="{{ route('violations.report') }}"
-               class="flex items-center px-4 py-3 rounded-lg text-white transition {{ request()->routeIs('violations.report') ? 'bg-green-600 font-bold' : 'hover:bg-green-700' }}">
-                <span class="text-lg mr-3">📋</span>
-                <span>Reports</span>
-            </a>
-            @endif
-        @endauth
-    </div>
-
-    <!-- Sidebar Footer -->
-    <div class="absolute bottom-0 left-0 right-0 px-4 py-4 border-t border-green-600 bg-green-800">
-        <div class="space-y-2">
-            <a href="{{ route('profile.edit') }}"
-               class="flex items-center px-4 py-2 rounded-lg text-white text-sm hover:bg-green-700">
-                <span class="mr-2">⚙️</span>
-                <span>Profile</span>
-            </a>
-            <form method="POST" action="{{ route('logout') }}" class="w-full">
-                @csrf
-                <button type="submit" class="w-full flex items-center px-4 py-2 rounded-lg text-white text-sm hover:bg-green-700 transition">
-                    <span class="mr-2">🚪</span>
-                    <span>Logout</span>
-                </button>
-            </form>
+            <div class="hidden sm:flex sm:items-center sm:ml-6">
+                <x-dropdown align="right" width="48">
+                    <x-slot name="trigger">
+                        <button class="inline-flex items-center px-4 py-2 border border-feu-gold/50 text-sm leading-4 font-bold rounded-lg text-feu-gold bg-feu-green-dark hover:bg-feu-green focus:outline-none transition">
+                            <div>{{ Auth::user()->name ?? 'Administrator' }}</div>
+                            <svg class="ml-2 h-4 w-4 fill-current" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </x-slot>
+                    <x-slot name="content">
+                        <x-dropdown-link :href="route('profile.edit')">Profile</x-dropdown-link>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">Log Out</x-dropdown-link>
+                        </form>
+                    </x-slot>
+                </x-dropdown>
+            </div>
         </div>
     </div>
 </nav>
-
-<!-- Mobile Sidebar Toggle Button -->
-<button @click="document.querySelector('nav').style.left = '0'"
-        class="fixed bottom-6 right-6 md:hidden bg-green-600 hover:bg-green-700 text-white p-3 rounded-full shadow-lg z-30 transition"
-        x-cloak>
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-    </svg>
-</button>
