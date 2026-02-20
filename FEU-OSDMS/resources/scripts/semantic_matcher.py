@@ -12,7 +12,7 @@ GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY', 'YOUR_ACTUAL_API_KEY_HERE')
 
 if not GOOGLE_API_KEY or 'YOUR_ACTUAL' in GOOGLE_API_KEY:
 
-     GOOGLE_API_KEY = "AIzaSyDZRKaiN0iYoxs0KOICpKhf2y6zoXFAU78"
+     GOOGLE_API_KEY = ""
 
 if not GOOGLE_API_KEY:
     print(json.dumps({"error": "Google API Key not configured."}))
