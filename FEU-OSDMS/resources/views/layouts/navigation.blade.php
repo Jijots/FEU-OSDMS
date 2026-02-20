@@ -37,7 +37,7 @@
         <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" class="w-full py-4 border border-white/10 hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 rounded-full text-[9px] font-black text-white/30 uppercase tracking-[0.4em] transition-all">
-                Terminate Session
+                Log Out
             </button>
         </form>
     </div>

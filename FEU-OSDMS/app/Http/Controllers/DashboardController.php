@@ -9,20 +9,22 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Real-time Counts pulled from your intelligence database
+        // Real-time Counts based strictly on report type
         $lostCount = LostItem::where('report_type', 'Lost')->count();
         $foundCount = LostItem::where('report_type', 'Found')->count();
-        $activeViolations = 7;
 
-        // Administrative Metadata
+        $activeViolations = 7;
         $adminName = auth()->user()->name;
-        $currentDate = now()->format('F d, Y');
-        $semester = "2nd Semester";
         $sy = "S.Y. 2025-2026";
+        $semester = "2nd Semester";
 
         return view('dashboard', compact(
-            'lostCount', 'foundCount', 'activeViolations',
-            'adminName', 'currentDate', 'semester', 'sy'
+            'lostCount',
+            'foundCount',
+            'activeViolations',
+            'adminName',
+            'sy',
+            'semester'
         ));
     }
 }

@@ -4,7 +4,9 @@
             <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
                 <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
-            <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
+            <a href="{{ route('dashboard') }}" class="hover:opacity-80 transition-opacity">
+                <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
+            </a>
         </div>
         <div class="flex items-center gap-6">
             <div class="text-right">
@@ -37,24 +39,18 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-12 rounded-[3rem] border-2 border-slate-50 shadow-sm flex items-center justify-between">
-                    <div>
-                        <span class="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">Intelligence Logs</span>
-                        <div class="text-8xl font-black text-slate-900 mt-2 tracking-tighter">{{ $foundCount + $lostCount }}</div>
-                        <div class="flex gap-4 mt-6">
-                            <span class="px-4 py-2 bg-green-50 text-[#004d32] rounded-lg text-[9px] font-black uppercase">{{ $foundCount }} Found</span>
-                            <span class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-[9px] font-black uppercase">{{ $lostCount }} Lost</span>
-                        </div>
+            <div class="bg-white p-16 rounded-[3.5rem] border-2 border-slate-50 shadow-sm flex items-center justify-between">
+                <div>
+                    <span class="text-[12px] font-black text-slate-300 uppercase tracking-[0.2em]">Verified Intelligence Logs</span>
+                    <div class="text-9xl font-black text-slate-900 mt-2 tracking-tighter leading-none">{{ $foundCount + $lostCount }}</div>
+                    <div class="flex gap-4 mt-8">
+                        <span class="px-6 py-2.5 bg-green-50 text-[#004d32] rounded-xl text-[10px] font-black uppercase">{{ $foundCount }} Found Records</span>
+                        <span class="px-6 py-2.5 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase">{{ $lostCount }} Lost Records</span>
                     </div>
                 </div>
-                <div class="bg-slate-900 p-12 rounded-[3rem] shadow-3xl text-white">
-                    <h3 class="text-3xl font-black tracking-tight mb-8">Instant Access</h3>
-                    <div class="flex gap-4">
-                        <a href="{{ route('assets.index') }}" class="flex-1 py-5 bg-white/5 border border-white/10 rounded-2xl text-center text-[9px] font-black uppercase no-underline">IntelliThings</a>
-                        <a href="{{ route('gate.index') }}" class="flex-1 py-5 bg-white/5 border border-white/10 rounded-2xl text-center text-[9px] font-black uppercase no-underline">Gate Logs</a>
-                    </div>
-                </div>
+                <a href="{{ route('assets.index') }}" class="px-12 py-6 bg-[#004d32] text-white rounded-3xl font-black uppercase tracking-widest text-xs shadow-2xl hover:brightness-110 transition-all no-underline">
+                    Open Complete Logs
+                </a>
             </div>
         </div>
     </div>

@@ -12,13 +12,12 @@ html, body {
 }
 
 @layer components {
-    /* GLOBAL SCALE: Technical high-density feel */
+    /* GLOBAL WRAPPER: Zoom removed to fix image clipping */
     .scale-content {
-        zoom: 0.90;
-        @apply antialiased min-h-screen;
+        @apply antialiased min-h-screen flex flex-col;
     }
 
-    /* THE FIXED PILLAR: Physically locked to the viewport */
+    /* THE FIXED PILLAR */
     .sidebar-fixed {
         position: fixed;
         top: 0;

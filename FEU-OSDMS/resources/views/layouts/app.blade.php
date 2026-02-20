@@ -27,7 +27,7 @@
                 </a>
             </div>
 
-            <div class="p-10 border-t border-white/5 bg-black/10">
+            <div class="p-10 border-t border-white/5 bg-black/10 mt-auto">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full py-4 text-[10px] font-black text-white/20 hover:text-red-500 uppercase tracking-widest transition-all">
@@ -37,12 +37,10 @@
             </div>
         </nav>
 
-        <main class="flex-1 transition-all duration-300 h-full overflow-y-auto"
+        <main class="flex-1 transition-all duration-300 h-full overflow-y-auto bg-[#F8FAFB]"
               :class="sidebarOpen ? 'ml-72' : 'ml-0'">
             {{ $slot }}
         </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
