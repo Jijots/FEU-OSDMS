@@ -1,39 +1,50 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800">🚪 Gate Entry Log</h2>
-    </x-slot>
+    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
+        <div class="flex items-center gap-10">
+            <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
+                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <a href="{{ route('dashboard') }}" class="hover:opacity-80 transition-opacity">
+                <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
+            </a>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">System Terminal</p>
+                <p class="text-xs font-black text-[#004d32] tracking-tighter">OSD-ADMIN-{{ auth()->id() }}</p>
+            </div>
+            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse border-4 border-green-50"></div>
+        </div>
+    </div>
 
-    <div class="p-6 bg-gray-50 min-h-screen">
-        <div class="max-w-5xl mx-auto space-y-6">
+    <div class="py-12 bg-[#FCFCFC]" style="zoom: 0.90;">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-10">
 
-            <!-- Success Message -->
+            <div class="mb-8">
+                <h1 class="text-7xl font-black text-slate-900 tracking-tighter leading-none">Gate Entry Log</h1>
+                <p class="text-xl text-slate-400 font-medium tracking-tight mt-2">Monitor and authorize physical campus access.</p>
+            </div>
+
             @if(session('success'))
-                <div class="bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded-lg font-semibold flex items-center">
-                    <span class="mr-2">✓</span>
+                <div class="bg-green-50 border-2 border-green-200 text-[#004d32] px-8 py-5 rounded-[2rem] font-black tracking-widest uppercase text-[10px] flex items-center shadow-lg">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-4"></span>
                     {{ session('success') }}
                 </div>
             @endif
 
-            <!-- Entry Form Card -->
-            <div class="bg-white p-6 rounded-lg shadow-sm border-l-4 border-yellow-500">
-                <div class="flex items-center mb-4">
-                    <span class="text-2xl mr-2">📝</span>
-                    <h3 class="font-bold text-lg text-gray-800">Log New Student Entry</h3>
-                </div>
+            <div class="bg-white p-12 rounded-[3.5rem] shadow-xl border border-slate-100">
+                <h3 class="font-black text-[12px] text-slate-400 uppercase tracking-[0.2em] mb-8">Log New Entry</h3>
                 <form action="{{ route('gate.store') }}" method="POST">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Student ID Number</label>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-4">Student ID Number</label>
                             <input type="text" name="id_number" placeholder="e.g., 202312345" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none" value="{{ old('id_number') }}">
-                            @error('id_number')
-                                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                            @enderror
+                                   class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-2 focus:ring-[#004d32] transition-all" value="{{ old('id_number') }}">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Entry Reason</label>
-                            <select name="reason" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-yellow-500 focus:ring-yellow-500 focus:outline-none">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-4">Entry Reason</label>
+                            <select name="reason" class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-2 focus:ring-[#004d32] transition-all appearance-none cursor-pointer">
                                 <option value="Forgot ID">Forgot ID</option>
                                 <option value="Lost ID">Lost ID</option>
                                 <option value="Damaged ID">Damaged ID</option>
@@ -41,64 +52,58 @@
                             </select>
                         </div>
                         <div class="flex items-end">
-                            <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 rounded-lg transition uppercase text-sm">
-                                Record Entry
+                            <button type="submit" class="w-full py-5 bg-[#FECB02] text-[#004d32] rounded-full font-black uppercase tracking-[0.2em] text-[11px] shadow-xl hover:brightness-110 transition-all">
+                                Authorize Entry
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Entry Logs Table -->
-            <div class="bg-white p-6 rounded-lg shadow-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center">
-                        <span class="text-2xl mr-2">📊</span>
-                        <h3 class="font-bold text-lg text-gray-800">Today's Entry Logs</h3>
-                    </div>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold">{{ $entries->count() }} entries</span>
+            <div class="bg-white rounded-[3.5rem] shadow-[0_45px_90px_-20px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden">
+                <div class="p-10 border-b border-slate-50 flex justify-between items-center">
+                    <h3 class="font-black text-[12px] text-slate-400 uppercase tracking-[0.2em]">Today's Activity</h3>
+                    <span class="px-6 py-2.5 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">{{ $entries->count() }} Entries</span>
                 </div>
 
                 <div class="overflow-x-auto">
-                    @if($entries->count() > 0)
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="p-3 text-left font-bold text-gray-600 text-xs uppercase">📅 Time</th>
-                                <th class="p-3 text-left font-bold text-gray-600 text-xs uppercase">👤 Student Name</th>
-                                <th class="p-3 text-left font-bold text-gray-600 text-xs uppercase">🆔 ID Number</th>
-                                <th class="p-3 text-left font-bold text-gray-600 text-xs uppercase">📝 Reason</th>
-                                <th class="p-3 text-center font-bold text-gray-600 text-xs uppercase">Status</th>
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                <th class="px-10 py-6">Timestamp</th>
+                                <th class="px-6 py-6">Student Data</th>
+                                <th class="px-6 py-6 text-center">Authorization Reason</th>
+                                <th class="px-10 py-6 text-right">Status</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-slate-50">
                             @forelse($entries as $entry)
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="p-3 text-gray-600">{{ $entry->created_at->format('h:i A') }}</td>
-                                <td class="p-3 font-semibold text-gray-800">{{ $entry->student->name }}</td>
-                                <td class="p-3 font-mono text-gray-600">{{ $entry->student->id_number }}</td>
-                                <td class="p-3">
-                                    <span class="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-bold">
+                            <tr class="group hover:bg-slate-50/30 transition-all">
+                                <td class="px-10 py-8 text-[11px] font-black text-slate-400 tracking-widest">{{ $entry->created_at->format('h:i A') }}</td>
+                                <td class="px-6 py-8">
+                                    <div class="flex flex-col">
+                                        <span class="text-xl font-black text-slate-900">{{ $entry->student->name }}</span>
+                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ $entry->student->id_number }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-8 text-center">
+                                    <span class="inline-flex items-center justify-center px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-yellow-50 text-yellow-700 border border-yellow-100">
                                         {{ $entry->reason }}
                                     </span>
                                 </td>
-                                <td class="p-3 text-center">
-                                    <span class="inline-block px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
-                                        ✓ Logged
+                                <td class="px-10 py-8 text-right">
+                                    <span class="inline-flex items-center justify-center px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] bg-green-50 text-green-700 border border-green-100">
+                                        Verified
                                     </span>
                                 </td>
                             </tr>
                             @empty
+                            <tr>
+                                <td colspan="4" class="px-8 py-32 text-center text-slate-300 font-black uppercase tracking-[0.4em] text-xs">Terminal Idle — No Entries Today</td>
+                            </tr>
                             @endforelse
                         </tbody>
                     </table>
-                    @else
-                    <div class="text-center py-12">
-                        <p class="text-4xl mb-2">🔓</p>
-                        <p class="text-gray-600 font-semibold">No entries recorded for today</p>
-                        <p class="text-gray-500 text-sm">Gate entry logs will appear here as students are logged in</p>
-                    </div>
-                    @endif
                 </div>
             </div>
         </div>

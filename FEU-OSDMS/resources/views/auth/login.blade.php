@@ -1,60 +1,63 @@
 <x-guest-layout>
-    <div class="text-center mb-10">
-        <div class="inline-block">
+    <div class="flex flex-col items-center justify-center w-full mb-4 mt-2">
+        <div class="w-full flex justify-center mb-2 p-1">
             <img src="{{ asset('images/FEU-Logo.png') }}"
                  alt="Far Eastern University"
-                 class="h-28 w-auto mx-auto mb-10 drop-shadow-2xl object-contain">
+                 style="height: 120px; width: auto; object-fit: contain;"
+                 class="drop-shadow-2xl max-w-full">
         </div>
 
-        <h1 class="text-7xl font-black text-slate-900 tracking-tighter leading-none mb-4 uppercase">Command Center</h1>
-        <p class="text-[11px] font-black text-slate-400 uppercase tracking-[0.5em] opacity-80">Intelligence Division Access</p>
+        <h1 style="font-family: 'DellaRobiaBT', 'Della Robbia BT', serif; font-size: 38px; color: #FECB02; letter-spacing: 0.05em;"
+            class="leading-none drop-shadow-md uppercase text-center">
+            LOGIN
+        </h1>
+        <p class="text-[10px] font-black text-[#FECB02]/70 uppercase tracking-[0.4em] mt-1 text-center">
+            Office of Student Discipline
+        </p>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('login') }}"
-          class="bg-white p-14 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.08)] border border-slate-100">
-        @csrf
+    <div class="max-w-md mx-auto w-full px-6">
+        <form method="POST" action="{{ route('login') }}" class="space-y-4">
+            @csrf
 
-        <div class="space-y-8">
             <div>
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-6">Terminal ID / Email</label>
+                <label class="block text-[10px] font-bold text-[#FECB02] uppercase tracking-widest mb-1.5 ml-1">Email Address</label>
                 <input type="email" name="email" :value="old('email')" required autofocus
-                       class="w-full px-10 py-6 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-[#004d32]/10 transition-all text-sm">
-                <x-input-error :messages="$errors->get('email')" class="mt-3 ml-6" />
+                       placeholder="Enter your email address"
+                       class="w-full px-5 py-3 bg-white border-none rounded-xl font-semibold text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-[#FECB02] transition-all text-sm outline-none shadow-sm">
+                <x-input-error :messages="$errors->get('email')" class="mt-1 text-red-400 text-[10px]" />
             </div>
 
             <div>
-                <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-6">Access Key</label>
+                <label class="block text-[10px] font-bold text-[#FECB02] uppercase tracking-widest mb-1.5 ml-1">Password</label>
                 <input type="password" name="password" required
-                       class="w-full px-10 py-6 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-[#004d32]/10 transition-all text-sm">
-                <x-input-error :messages="$errors->get('password')" class="mt-3 ml-6" />
+                       placeholder="••••••••"
+                       class="w-full px-5 py-3 bg-white border-none rounded-xl font-semibold text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-[#FECB02] transition-all text-sm outline-none shadow-sm">
+                <x-input-error :messages="$errors->get('password')" class="mt-1 text-red-400 text-[10px]" />
             </div>
 
-            <div class="flex items-center justify-between px-6">
+            <div class="flex items-center justify-between mt-2">
                 <label class="inline-flex items-center cursor-pointer group">
-                    <input type="checkbox" name="remember" class="w-5 h-5 rounded-lg border-slate-200 text-[#004d32] focus:ring-[#004d32]">
-                    <span class="ml-4 text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">Maintain Session</span>
+                    <input type="checkbox" name="remember" class="w-3.5 h-3.5 rounded border-white/20 bg-transparent text-[#FECB02] focus:ring-[#FECB02]">
+                    <span class="ml-2 text-[11px] font-bold text-white/60 group-hover:text-white transition-colors">Remember Me</span>
                 </label>
 
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-[10px] font-black text-slate-300 hover:text-[#004d32] uppercase tracking-widest no-underline transition-colors">
-                        Forgot Key?
+                    <a href="{{ route('password.request') }}" class="text-[11px] font-bold text-[#FECB02] hover:text-white no-underline transition-colors">
+                        Forgot Password?
                     </a>
                 @endif
             </div>
 
-            <button type="submit" class="w-full py-7 mt-6 bg-[#004d32] text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl shadow-green-900/40 hover:brightness-110 hover:-translate-y-1 transition-all active:scale-95">
-                Initialize Access
+            <button type="submit" class="w-full py-4 mt-2 bg-[#FECB02] text-[#004d32] rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-2xl hover:brightness-110 hover:-translate-y-1 transition-all active:scale-95">
+                LOGIN
             </button>
-        </div>
-    </form>
+        </form>
 
-    <div class="mt-16 text-center">
-        <div class="flex items-center justify-center gap-4 mb-4">
-            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-            <span class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Secure Terminal Link Active</span>
+        <div class="mt-6 text-center">
+             <p class="text-[9px] font-black text-[#FECB02]/30 uppercase tracking-[0.5em]">FEU-OSD Intelligence Protocol v2026</p>
         </div>
-        <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em]">FEU-OSD Intelligence Protocol v2026</p>
     </div>
 </x-guest-layout>
