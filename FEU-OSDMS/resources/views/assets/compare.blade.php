@@ -33,7 +33,7 @@
                 <div class="bg-white p-12 rounded-[4rem] shadow-xl border border-slate-100 text-center relative">
                     <span class="absolute top-10 left-10 text-[10px] font-black text-slate-300 uppercase tracking-widest">Database Record</span>
                     <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl">
-                        <img src="{{ asset($targetItem->image_path) }}" class="w-full h-full object-cover">
+                        <img src="{{ $targetItem->image_url }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/placeholder.png') }}'">
                     </div>
                     <h3 class="text-4xl font-black text-slate-900 mt-10 tracking-tighter">{{ $targetItem->item_category }}</h3>
                 </div>

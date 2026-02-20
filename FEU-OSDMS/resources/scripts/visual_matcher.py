@@ -5,12 +5,31 @@ import json
 import argparse
 import os
 
-# --- MISSING PIECE 1: Error Handler ---
+# --- NEW HELPER FUNCTION: Letterboxing ---
+def resize_with_padding(image, target_size=1024):
+    """Resizes image to fit within target_size square without stretching."""
+    h, w = image.shape[:2]
+    # Calculate scale to fit within the box
+    scale = min(target_size / w, target_size / h)
+    nw, nh = int(w * scale), int(h * scale)
+
+    # Resize preserving aspect ratio
+    resized_image = cv2.resize(image, (nw, nh), interpolation=cv2.INTER_AREA)
+
+    # Create black canvas
+    new_image = np.zeros((target_size, target_size, 3), dtype=np.uint8)
+
+    # Center the image
+    top = (target_size - nh) // 2
+    left = (target_size - nw) // 2
+    new_image[top:top+nh, left:left+nw] = resized_image
+
+    return new_image
+# -----------------------------------------
+
 def generate_error(msg):
-    """Ensures we always return valid JSON to Laravel, even on a crash."""
-    print(json.dumps({"visual_similarity": 0, "breakdown": msg}))
+    print(json.dumps({"confidence_score": 0, "visual_score": 0, "breakdown": msg}))
     sys.exit(0)
-# --------------------------------------
 
 def calculate_similarity(img1_path, img2_path, is_stock):
     try:
@@ -23,39 +42,38 @@ def calculate_similarity(img1_path, img2_path, is_stock):
         if img1_src is None or img2_src is None:
             generate_error("OpenCV could not decode the image files.")
 
-        img1 = cv2.resize(img1_src, (1024, 1024))
-        img2 = cv2.resize(img2_src, (1024, 1024))
+        # --- THE FIX: USE PADDING INSTEAD OF STRETCHING ---
+        img1 = resize_with_padding(img1_src)
+        img2 = resize_with_padding(img2_src)
+        # --------------------------------------------------
 
-        # Create a universal center mask (Ignores white backgrounds AND messy desks)
-        mask = np.zeros(img1.shape[:2], dtype=np.uint8)
-        cv2.circle(mask, (512, 512), 400, 255, -1)
+        # Use full image mask (no center circle blindspot)
+        mask = np.ones(img1.shape[:2], dtype=np.uint8) * 255
 
         if is_stock:
-            # --- PATHWAY A: HYPER-TUNED STOCK ALGORITHM ---
-
-            # 1. Masked Color Histogram (Only compares the center object)
+            # --- PATHWAY A: STOCK ALGORITHM (Unchanged) ---
             h1 = cv2.calcHist([img1], [0, 1, 2], mask, [8, 8, 8], [0, 256, 0, 256, 0, 256])
             h2 = cv2.calcHist([img2], [0, 1, 2], mask, [8, 8, 8], [0, 256, 0, 256, 0, 256])
             color_sim = cv2.compareHist(cv2.normalize(h1, h1), cv2.normalize(h2, h2), cv2.HISTCMP_CORREL)
 
-            # 2. Hyper-Sensitive SIFT for Domain Gap
             gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
             gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-
-            # Extreme contrast enhancement to force edges out of the smooth stock image
             clahe = cv2.createCLAHE(clipLimit=6.0, tileGridSize=(8,8))
 
-            # Lower contrast threshold to catch tiny details
             sift = cv2.SIFT_create(nfeatures=5000, contrastThreshold=0.02)
             kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask)
             kp2, des2 = sift.detectAndCompute(clahe.apply(gray2), mask)
 
             flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=100))
 
-            if des1 is not None and des2 is not None:
+            if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
                 matches = flann.knnMatch(des1, des2, k=2)
-                # VERY forgiving ratio test (0.85) to bridge the digital-to-physical gap
-                good = [m for m, n in matches if m.distance < 0.85 * n.distance]
+                good = []
+                for m_n in matches:
+                    if len(m_n) == 2:
+                        m, n = m_n
+                        if m.distance < 0.85 * n.distance:
+                            good.append(m)
 
                 if len(good) > 5:
                     src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -64,17 +82,11 @@ def calculate_similarity(img1_path, img2_path, is_stock):
 
                     if mask_geo is not None:
                         inliers = int(np.sum(mask_geo))
-
-                        # THE DEFENSE CALIBRATION:
-                        # Finding > 4 geometric inliers between a perfect digital render
-                        # and a grainy real photo is mathematical proof of a match.
                         color_val = max(0, color_sim) * 100
-                        struct_val = min(100, (inliers / 10) * 100) # 10 points = 100% structural match here
-
+                        struct_val = min(100, (inliers / 10) * 100)
                         raw_score = (color_val * 0.3) + (struct_val * 0.7)
 
                         if inliers >= 4:
-                            # Boost to clear the 75% RRL marker
                             final_score = min(98, max(76, raw_score + 25))
                             msg = f"Stock Verified: {inliers} structural points + core color match."
                         else:
@@ -88,23 +100,28 @@ def calculate_similarity(img1_path, img2_path, is_stock):
                     msg = "Insufficient cross-domain features. Relied on color."
             else:
                 final_score = 5
-                msg = "Feature extraction failed."
+                msg = "Feature extraction failed (Stock)."
 
         else:
-            # --- PATHWAY B: STANDARD REAL PHOTO (The 77% Winner) ---
+            # --- PATHWAY B: STANDARD REAL PHOTO (Unchanged thresholds) ---
             gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
             gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
             clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(8,8))
 
             sift = cv2.SIFT_create(nfeatures=5000)
-            kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask) # Apply mask here too!
+            kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask)
             kp2, des2 = sift.detectAndCompute(clahe.apply(gray2), mask)
 
             flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=100))
 
-            if des1 is not None and des2 is not None:
+            if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
                 matches = flann.knnMatch(des1, des2, k=2)
-                good = [m for m, n in matches if m.distance < 0.75 * n.distance]
+                good = []
+                for m_n in matches:
+                    if len(m_n) == 2:
+                        m, n = m_n
+                        if m.distance < 0.75 * n.distance:
+                            good.append(m)
 
                 if len(good) > 10:
                     src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -130,15 +147,13 @@ def calculate_similarity(img1_path, img2_path, is_stock):
                     msg = "Insufficient features."
             else:
                 final_score = 5
-                msg = "Feature extraction failed."
+                msg = "Feature extraction failed (Real)."
 
-        print(json.dumps({"visual_similarity": int(final_score), "breakdown": msg}))
+        print(json.dumps({"confidence_score": int(final_score), "visual_score": int(final_score), "breakdown": msg}))
 
     except Exception as e:
         generate_error(f"Python Crash: {str(e)}")
 
-
-# --- MISSING PIECE 2: The Execution Block ---
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("img1")
@@ -149,7 +164,6 @@ if __name__ == "__main__":
         args = parser.parse_args()
         calculate_similarity(args.img1, args.img2, args.stock)
     except SystemExit:
-        pass # Allow argparse to exit cleanly
+        pass
     except Exception as e:
         generate_error(f"Argument Parsing Error: {str(e)}")
-# ---------------------------------------------

@@ -8,92 +8,76 @@
                 <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
             </a>
         </div>
-        <h2 class="text-[10px] font-black text-slate-400 tracking-widest uppercase">Disciplinary Offense Matrix</h2>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">
+                    {{ str_contains(auth()->user()->email ?? '', 'admin') ? 'System Terminal' : 'Checkpoint Terminal' }}
+                </p>
+                <p class="text-xs font-black text-[#004d32] tracking-tighter">
+                    {{ str_contains(auth()->user()->email ?? '', 'admin') ? 'ADMIN' : 'GUARD' }}-{{ auth()->id() }}
+                </p>
+            </div>
+            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse border-4 border-red-50"></div>
+        </div>
     </div>
 
-    <div class="py-12 bg-[#FCFCFC]" style="zoom: 0.90;">
+    <div class="py-12 bg-[#F8FAFB]" style="zoom: 0.90;">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
 
-            <div class="mb-10 text-center">
-                <h1 class="text-6xl font-black text-slate-900 tracking-tighter leading-none">Record Violation</h1>
-                <div class="inline-flex items-center gap-3 mt-6 px-6 py-2 rounded-full bg-red-50">
-                    <span class="w-2 h-2 bg-red-600 rounded-full animate-pulse"></span>
-                    <p class="text-[9px] font-black text-red-600 uppercase tracking-[0.4em]">Official Logging Sequence</p>
+            <div class="mb-10 text-center lg:text-left flex items-center gap-6">
+                <a href="{{ route('violations.report') }}" class="p-4 bg-white rounded-full shadow-sm hover:bg-slate-50 transition-colors border border-slate-100">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                </a>
+                <div>
+                    <h1 class="text-5xl font-black text-slate-900 tracking-tighter mb-1">File Disciplinary Report</h1>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official documentation of student infractions</p>
                 </div>
             </div>
 
-            <div class="bg-white p-14 rounded-[4rem] shadow-2xl border border-slate-100">
+            <div class="bg-white rounded-2xl p-10 shadow-sm border border-slate-100">
                 <form action="{{ route('violations.store') }}" method="POST" class="space-y-8">
                     @csrf
 
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Target Identity</label>
-                        <select name="student_id" required class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all text-sm appearance-none cursor-pointer">
-                            <option value="">— Select Target Profile —</option>
-                            @foreach($students as $student)
-                                <option value="{{ $student->id }}">{{ $student->id_number }} - {{ $student->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('student_id') <p class="text-red-500 text-xs mt-2 ml-4 font-bold">{{ $message }}</p> @enderror
-                    </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Offense Classification</label>
-                            <select name="offense_type" required class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all text-sm appearance-none cursor-pointer">
-                                <option value="">— Assign Category —</option>
-                                <option value="Uniform Violation">Uniform Violation</option>
-                                <option value="ID Misuse">ID Misuse</option>
-                                <option value="Unauthorized Access">Unauthorized Access</option>
-                                <option value="Late Entry">Late Entry</option>
-                                <option value="Major Offense">Major Offense</option>
-                                <option value="Conduct">Conduct Violation</option>
-                                <option value="Other">Other</option>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-[#004d32] uppercase tracking-widest mb-2 ml-1">Involved Student</label>
+                            <select name="student_id" class="w-full px-6 py-4 bg-[#F8FAFB] border border-slate-100 rounded-xl font-bold text-sm text-slate-700 focus:ring-2 focus:ring-[#FECB02] focus:bg-white transition-all outline-none shadow-sm cursor-pointer" required>
+                                <option value="" disabled selected>Select a student from the directory...</option>
+                                @foreach($students as $student)
+                                    <option value="{{ $student->id }}">{{ $student->id_number }} — {{ $student->name }}</option>
+                                @endforeach
                             </select>
+                            @error('student_id') <span class="text-red-500 text-[10px] font-bold mt-2 ml-1 block">{{ $message }}</span> @enderror
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Current Status</label>
-                            <select name="status" class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all text-sm appearance-none cursor-pointer">
-                                <option value="Pending">Pending Investigation</option>
-                                <option value="Resolved">Resolved Immediately</option>
-                                <option value="Escalated">Escalated for Review</option>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-[#004d32] uppercase tracking-widest mb-2 ml-1">Offense Category</label>
+                            <select name="offense_type" class="w-full px-6 py-4 bg-[#F8FAFB] border border-slate-100 rounded-xl font-bold text-sm text-slate-700 focus:ring-2 focus:ring-[#FECB02] focus:bg-white transition-all outline-none shadow-sm cursor-pointer" required>
+                                <option value="" disabled selected>Classify the infraction...</option>
+                                <option value="Dress Code Violation">Dress Code Violation</option>
+                                <option value="Misconduct / Unruly Behavior">Misconduct / Unruly Behavior</option>
+                                <option value="Vandalism / Property Damage">Vandalism / Property Damage</option>
+                                <option value="Smoking / Vaping on Campus">Smoking / Vaping on Campus</option>
+                                <option value="Other Infraction">Other Infraction</option>
                             </select>
+                            @error('offense_type') <span class="text-red-500 text-[10px] font-bold mt-2 ml-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-[#004d32] uppercase tracking-widest mb-2 ml-1">Detailed Incident Report</label>
+                            <textarea name="description" rows="5" placeholder="Provide a factual, objective summary of the incident..." class="w-full px-6 py-4 bg-[#F8FAFB] border border-slate-100 rounded-xl font-bold text-sm text-slate-700 placeholder-slate-400 focus:ring-2 focus:ring-[#FECB02] focus:bg-white transition-all outline-none shadow-sm resize-none" required></textarea>
+                            @error('description') <span class="text-red-500 text-[10px] font-bold mt-2 ml-1 block">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Initial Findings</label>
-                            <input type="text" name="findings" placeholder="Enter findings..."
-                                   class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all text-sm">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Academic Term</label>
-                            <input type="text" name="academic_term" placeholder="e.g., 2nd Sem 2026"
-                                   class="w-full px-8 py-5 rounded-full bg-slate-50 border-none font-bold text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all text-sm">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Incident Report</label>
-                        <textarea name="description" rows="4" placeholder="Detailed chronological breakdown..."
-                                  class="w-full px-8 py-6 rounded-[2rem] bg-slate-50 border-none font-medium text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all resize-none"></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-4">Action Recommendation</label>
-                        <textarea name="recommendation" rows="2" placeholder="Suggested sanctions or follow-ups..."
-                                  class="w-full px-8 py-6 rounded-[2rem] bg-slate-50 border-none font-medium text-slate-900 focus:ring-4 focus:ring-red-600/10 transition-all resize-none"></textarea>
-                    </div>
-
-                    <div class="flex gap-4 pt-8">
-                        <a href="{{ route('violations.index') }}" class="flex-1 text-center py-6 font-black text-slate-300 uppercase tracking-widest text-xs hover:text-slate-600 transition-colors no-underline">Cancel</a>
-                        <button type="submit" class="flex-[2] py-6 bg-[#991b1b] text-white rounded-full font-black uppercase tracking-[0.3em] text-[11px] shadow-2xl shadow-red-900/40 hover:brightness-110 transition-all">
-                            Commit to Database
+                    <div class="pt-6 border-t border-slate-50 flex justify-end">
+                        <button type="submit" class="px-12 py-5 bg-[#FECB02] text-[#004d32] rounded-xl font-black uppercase tracking-[0.2em] text-xs shadow-md hover:brightness-110 hover:-translate-y-1 transition-all active:scale-95">
+                            Submit Official Report
                         </button>
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
 </x-app-layout>

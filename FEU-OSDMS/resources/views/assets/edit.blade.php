@@ -85,8 +85,10 @@
                     <label class="block text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Update Photo
                         (Optional)</label>
                     <div class="border-2 border-dashed border-gray-200 rounded-3xl p-6 text-center">
-                        <template x-if="photoPreview"><img :src="photoPreview"
-                                class="h-48 mx-auto rounded-xl object-contain mb-4"></template>
+                        <template x-if="!photoPreview">
+                            <img src="{{ $item->image_url }}"
+                                class="h-48 mx-auto rounded-xl object-contain mb-4 shadow-sm opacity-50">
+                        </template>
                         <input type="file" name="image" class="hidden" x-ref="photo"
                             @change="const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL($refs.photo.files[0]);">
                         <button type="button" @click="$refs.photo.click()"

@@ -12,56 +12,62 @@
     </div>
 
     <div class="max-w-2xl mx-auto py-16">
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-                <ul class="list-disc ml-5 text-sm font-bold">
-                    @foreach ($errors->all() as $error) <li>{{ $error }}</li> @endforeach
-                </ul>
-            </div>
-        @endif
-
-        <form action="{{ route('assets.store') }}" method="POST" enctype="multipart/form-data" class="bg-white p-12 rounded-[2.5rem] shadow-xl border border-slate-100" x-data="{ photoPreview: null }">
+        <form action="{{ route('assets.store') }}" method="POST" enctype="multipart/form-data" x-data="{ photoPreview: null }" class="space-y-8">
             @csrf
-            <div class="space-y-8">
-                <div class="grid grid-cols-2 gap-6">
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="report_type" value="Lost" class="peer hidden" checked>
-                        <div class="p-6 border-2 border-slate-100 rounded-3xl peer-checked:border-[#004d32] peer-checked:bg-green-50 text-center transition-all group-hover:bg-slate-50">
-                            <span class="block font-black text-slate-900">I Lost an Item</span>
-                        </div>
+
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Report Type</label>
+                    <select name="report_type" class="w-full px-8 py-5 rounded-[2rem] bg-slate-50 border-none font-bold text-slate-700 outline-none appearance-none" required>
+                        <option value="Found">Found</option>
+                        <option value="Lost">Lost</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Item Category</label>
+                    <select name="item_category" class="w-full px-8 py-5 rounded-[2rem] bg-slate-50 border-none font-bold text-slate-700 outline-none appearance-none" required>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Documents">Documents</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Intelligence Description</label>
+                <textarea name="description" rows="5" class="w-full px-8 py-5 rounded-[2.5rem] bg-slate-50 border-none font-bold text-slate-700 outline-none resize-none" placeholder="Provide a detailed description..." required></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Location Found/Lost</label>
+                    <input type="text" name="location_found" class="w-full px-8 py-5 rounded-[2rem] bg-slate-50 border-none font-bold text-slate-700 outline-none" required>
+                </div>
+                <div class="flex flex-col">
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Options</label>
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                        <input type="checkbox" name="is_stock_image" value="1" class="w-6 h-6 rounded-lg border-slate-200 text-[#004d32] focus:ring-[#004d32]">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-600 transition-colors">Is Stock Image</span>
                     </label>
-                    <label class="cursor-pointer group">
-                        <input type="radio" name="report_type" value="Found" class="peer hidden">
-                        <div class="p-6 border-2 border-slate-100 rounded-3xl peer-checked:border-[#004d32] peer-checked:bg-green-50 text-center transition-all group-hover:bg-slate-50">
-                            <span class="block font-black text-slate-900">I Found an Item</span>
-                        </div>
-                    </label>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Item Information</label>
-                    <input type="text" name="item_category" placeholder="Item Name" class="w-full px-8 py-5 rounded-2xl border-slate-100 bg-slate-50 font-bold focus:ring-[#004d32]" required>
-                    <input type="date" name="date_lost" class="w-full px-8 py-5 rounded-2xl border-slate-100 bg-slate-50 font-bold mt-4 focus:ring-[#004d32]" required>
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Security Capture</label>
+                <div class="border-4 border-dashed border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-[#004d32] transition-colors group bg-slate-50">
+                    <template x-if="photoPreview">
+                        <img :src="photoPreview" class="h-48 mx-auto rounded-2xl object-cover mb-6 shadow-2xl border-4 border-white">
+                    </template>
+                    <input type="file" name="image" class="hidden" x-ref="photo" @change="const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL($refs.photo.files[0]);" required>
+                    <button type="button" @click="$refs.photo.click()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest group-hover:bg-[#004d32] transition-all">Select Image</button>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Description</label>
-                    <textarea name="description" rows="3" class="w-full px-8 py-5 rounded-2xl border-slate-100 bg-slate-50 resize-none font-medium" required></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Security Capture</label>
-                    <div class="border-4 border-dashed border-slate-100 rounded-[2.5rem] p-10 text-center hover:border-[#004d32] transition-colors">
-                        <template x-if="photoPreview"><img :src="photoPreview" class="h-48 mx-auto rounded-2xl object-contain mb-6 shadow-2xl"></template>
-                        <input type="file" name="image" class="hidden" x-ref="photo" @change="const reader = new FileReader(); reader.onload = (e) => { photoPreview = e.target.result; }; reader.readAsDataURL($refs.photo.files[0]);" required>
-                        <button type="button" @click="$refs.photo.click()" class="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">Select Image</button>
-                    </div>
-                </div>
-
-                <div class="flex gap-4 pt-6">
-                    <a href="{{ route('assets.index') }}" class="flex-1 text-center py-5 font-black text-slate-300 uppercase text-xs no-underline">Cancel</a>
-                    <button type="submit" class="flex-[2] py-5 bg-[#004d32] text-white font-black rounded-2xl uppercase tracking-widest text-xs shadow-2xl shadow-green-900/20 hover:brightness-110 transition-all">Submit Intelligence Report</button>
-                </div>
+            <div class="flex gap-4 pt-6">
+                <a href="{{ route('assets.index') }}" class="flex-1 text-center py-5 font-black text-slate-300 uppercase text-xs no-underline hover:text-slate-500 transition-colors">Cancel</a>
+                <button type="submit" class="flex-[2] py-5 bg-[#004d32] text-white font-black rounded-2xl uppercase tracking-widest text-xs shadow-2xl hover:brightness-110 transition-all">Finalize Log Entry</button>
             </div>
         </form>
     </div>

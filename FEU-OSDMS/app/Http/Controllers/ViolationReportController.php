@@ -2,24 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Violation;
 use Illuminate\Http\Request;
 
 class ViolationReportController extends Controller
 {
-    /**
-     * Display a ranking of students based on violation count.
-     * This automates the identification of high-risk students.
-     */
     public function index()
     {
-        // Get only students who have at least one violation, ranked by count
-        $offenders = User::where('role', 'student')
-            ->withCount('violations')
-            ->having('violations_count', '>', 0)
-            ->orderBy('violations_count', 'desc')
-            ->get();
+        // Fetch all violations, including the student and reporter data, newest first
+        $violations = Violation::with(['student', 'reporter'])->latest()->get();
 
-        return view('violations.report', compact('offenders'));
+        // Pass the $violations variable to the report.blade.php view
+        return view('violations.report', compact('violations'));
     }
 }

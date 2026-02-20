@@ -3,12 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class LostItem extends Model
 {
     protected $fillable = [
         'founder_id',
-        'report_type', // NEW
+        'report_type',
         'item_category',
         'description',
         'location_found',
@@ -17,11 +18,22 @@ class LostItem extends Model
         'status',
         'is_claimed',
         'is_stock_image',
-        'flagged_for_review' // NEW
+        'flagged_for_review'
     ];
 
-    public function founder()
+    public function getImageUrlAttribute()
     {
-        return $this->belongsTo(User::class, 'founder_id');
+        if (!$this->image_path) {
+            return asset('images/placeholder.png');
+        }
+
+        // Clean up any accidental 'public/' prefixes that might have saved to the DB
+        $cleanPath = str_replace('public/', '', $this->image_path);
+
+        // Remove 'storage/' if it's already there to prevent 'storage/storage/assets...'
+        $cleanPath = str_replace('storage/', '', $cleanPath);
+
+        // Force the correct absolute web path
+        return asset('storage/' . $cleanPath);
     }
 }
