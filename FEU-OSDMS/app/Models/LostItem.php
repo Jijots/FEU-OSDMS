@@ -6,7 +6,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class LostItem extends Model
 {
-    protected $fillable = ['founder_id', 'item_category', 'description', 'location_found', 'image_path', 'is_claimed'];
+    protected $fillable = [
+        'founder_id',
+        'report_type', // NEW
+        'item_category',
+        'description',
+        'location_found',
+        'date_lost',
+        'image_path',
+        'status',
+        'is_claimed',
+        'is_stock_image',
+        'flagged_for_review' // NEW
+    ];
 
     public function founder()
     {

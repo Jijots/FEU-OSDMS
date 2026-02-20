@@ -1,79 +1,73 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('assets.index') }}" class="text-gray-400 hover:text-feu-green transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <span>AI Visual Analysis Report</span>
-        </div>
-    </x-slot>
+    <div class="py-12 bg-[#FCFCFC]" style="zoom: 0.90;">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-    <div class="max-w-7xl mx-auto pb-12">
-        @php
-            $percentage = ($match->visual_similarity ?? 0) * 100;
-            $isMatch = $percentage >= 50;
-        @endphp
-
-        <div class="bg-white rounded-2xl shadow-sm border {{ $isMatch ? 'border-feu-green' : 'border-red-200' }} p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div class="flex items-center gap-8">
-                <div class="relative">
-                    <svg class="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-100" />
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
-                            stroke-dasharray="251.2"
-                            stroke-dashoffset="{{ 251.2 - (251.2 * $percentage / 100) }}"
-                            class="{{ $isMatch ? 'text-feu-green' : 'text-red-500' }} transition-all duration-1000" />
-                    </svg>
-                    <span class="absolute inset-0 flex items-center justify-center text-2xl font-black text-gray-900">{{ number_format($percentage, 0) }}%</span>
-                </div>
-                <div>
-                    <h2 class="text-3xl font-black text-gray-900 tracking-tight">Match Confidence</h2>
-                    <p class="text-gray-500 font-medium mt-1">Verification Status: <span class="{{ $isMatch ? 'text-feu-green' : 'text-red-600' }} font-bold">{{ $isMatch ? 'Verified Correlation' : 'Inconclusive' }}</span></p>
-                </div>
-            </div>
-            <div class="flex gap-4">
-                <button class="px-8 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition shadow-sm">Flag for Review</button>
-                <button class="px-8 py-3 bg-feu-green hover:bg-feu-green-dark text-white font-bold rounded-xl transition shadow-md">Confirm Match</button>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <h3 class="font-bold text-gray-700 uppercase tracking-widest text-xs">Original Report Image</h3>
-                </div>
-                <div class="p-6">
-                    <div class="bg-slate-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden h-96">
-                        <img src="{{ asset($item->image_path) }}" class="max-h-full max-w-full object-contain" alt="Lost Item">
-                    </div>
-                    <div class="mt-6">
-                        <span class="text-xs font-bold text-feu-green uppercase tracking-tighter bg-green-50 px-2 py-1 rounded">ID: #{{ $item->id }}</span>
-                        <h4 class="text-xl font-black text-gray-900 mt-2">{{ $item->item_category }}</h4>
-                        <p class="text-gray-600 mt-1">{{ $item->description }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                    <h3 class="font-bold text-gray-700 uppercase tracking-widest text-xs">Guard Scan Result</h3>
-                </div>
-                <div class="p-6">
-                    <div class="bg-slate-50 rounded-xl border border-dashed border-gray-300 flex items-center justify-center overflow-hidden h-96 relative">
-                        <img src="{{ asset('samples/found_hirono.jpg') }}" class="max-h-full max-w-full object-contain" alt="Scanned Item">
-
-                        <div class="absolute inset-x-0 top-0 h-1 bg-feu-green/50 shadow-[0_0_15px_rgba(0,99,65,0.5)] animate-bounce mt-10"></div>
-                    </div>
-                    <div class="mt-6 bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-inner">
-                        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 font-mono">Vision Processor v2.0</p>
-                        <div class="font-mono text-green-400 text-sm">
-                            <span class="text-green-600">$</span> {{ $match->breakdown ?? 'Analyzing pixels...' }}
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span
+                                class="px-3 py-1 rounded-full bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-widest">Record
+                                #{{ $item->id }}</span>
+                        </div>
+                        <h1 class="text-6xl font-black text-slate-900 tracking-tighter">{{ $item->item_category }}</h1>
+                        <div
+                            class="rounded-[2.5rem] border-[10px] border-slate-50 overflow-hidden shadow-xl aspect-square">
+                            <img src="{{ asset($item->image_path) }}" class="w-full h-full object-cover">
                         </div>
                     </div>
+
+                    <div class="space-y-8">
+                        <div class="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest mb-4">Report Details
+                            </h3>
+                            <div class="text-sm font-medium text-slate-500 space-y-2">
+                                <p><strong class="text-slate-900">Type:</strong> {{ $item->report_type }}</p>
+                                <p><strong class="text-slate-900">Description:</strong> {{ $item->description }}</p>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('assets.compare', $item->id) }}" method="POST"
+                            enctype="multipart/form-data" class="space-y-6">
+                            @csrf
+                            <div>
+                                <label
+                                    class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Input
+                                    Security Capture</label>
+                                <input type="file" name="compare_image" required
+                                    class="w-full text-xs text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer">
+                            </div>
+
+                            <button type="submit" style="background-color: #004d32;"
+                                class="w-full py-5 rounded-2xl text-white font-black uppercase tracking-widest text-xs shadow-lg hover:brightness-110 transition-all">
+                                Execute Comparison
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 </x-app-layout>
+
+<div
+    class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-10">
+        <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
+            <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16">
+                </path>
+            </svg>
+        </button>
+        <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
+    </div>
+
+    <div class="flex items-center gap-6">
+        <div class="text-right">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] leading-none mb-1">System
+                Terminal</p>
+            <p class="text-xs font-black text-[#004d32] tracking-tighter">OSD-ADMIN-{{ auth()->id() }}</p>
+        </div>
+        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse border-4 border-green-50"></div>
+    </div>
+</div>

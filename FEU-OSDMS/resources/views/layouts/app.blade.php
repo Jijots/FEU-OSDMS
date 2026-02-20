@@ -1,59 +1,48 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <title>FEU OSDMS</title>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FEU-OSDMS Command Center</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+</head>
+<body class="h-full scale-content" x-data="{ sidebarOpen: false }">
+    <div class="flex h-full">
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900&display=swap" rel="stylesheet" />
+        <nav x-show="sidebarOpen"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="-translate-x-full"
+             x-transition:enter-end="translate-x-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="translate-x-0"
+             x-transition:leave-end="-translate-x-full"
+             class="sidebar-fixed w-72">
 
-        <style>
-            @font-face {
-                font-family: 'DellaRobbia BT';
-                src: url('/fonts/DellaRobbiaBT.ttf') format('truetype');
-                font-weight: normal;
-                font-style: normal;
-            }
-            .font-feu { font-family: 'DellaRobbia BT', serif; }
-        </style>
+            <div class="space-y-4 pt-40 px-8">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-4 px-8 py-5 rounded-2xl transition-all no-underline group {{ request()->routeIs('dashboard') ? 'bg-[#FECB02] shadow-xl text-[#004d32]' : 'text-white/40 hover:bg-white/5 hover:text-white' }}">
+                    <span class="text-[11px] font-black uppercase tracking-widest">Dashboard</span>
+                </a>
+                <a href="{{ route('assets.index') }}" class="flex items-center gap-4 px-8 py-5 rounded-2xl transition-all no-underline group {{ request()->routeIs('assets.*') ? 'bg-[#FECB02] shadow-xl text-[#004d32]' : 'text-white/40 hover:bg-white/5 hover:text-white' }}">
+                    <span class="text-[11px] font-black uppercase tracking-widest">IntelliThings</span>
+                </a>
+            </div>
 
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: { sans: ['Inter', 'sans-serif'] },
-                        colors: {
-                            'feu-green': '#006341',
-                            'feu-green-dark': '#004d32',
-                            'feu-gold': '#FDBA31',
-                        }
-                    }
-                }
-            }
-        </script>
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    </head>
-    <body class="font-sans antialiased bg-gray-50 text-gray-900 flex min-h-screen overflow-x-hidden">
+            <div class="p-10 border-t border-white/5 bg-black/10">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="w-full py-4 text-[10px] font-black text-white/20 hover:text-red-500 uppercase tracking-widest transition-all">
+                        Terminate Session
+                    </button>
+                </form>
+            </div>
+        </nav>
 
-        @include('layouts.navigation')
+        <main class="flex-1 transition-all duration-300 h-full overflow-y-auto"
+              :class="sidebarOpen ? 'ml-72' : 'ml-0'">
+            {{ $slot }}
+        </main>
+    </div>
 
-        <div class="flex-1 flex flex-col min-h-screen">
-            <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 px-8 py-4 flex justify-between items-center">
-                <div class="font-bold text-gray-800 text-lg">
-                    {{ $header ?? 'Dashboard' }}
-                </div>
-                <div class="flex items-center gap-4 text-sm font-bold text-gray-500">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    {{ Auth::user()->name }}
-                </div>
-            </header>
-
-            <main class="p-8 flex-1">
-                {{ $slot }}
-            </main>
-        </div>
-    </body>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
 </html>

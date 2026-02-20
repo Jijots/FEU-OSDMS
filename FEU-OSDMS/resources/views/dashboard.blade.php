@@ -1,53 +1,58 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-bold text-xl text-gray-800 leading-tight">OSD Command Center</h2>
-    </x-slot>
+    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
+        <div class="flex items-center gap-10">
+            <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
+                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="text-right">
+                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">System Terminal</p>
+                <p class="text-xs font-black text-[#004d32] tracking-tighter">OSD-ADMIN-{{ auth()->id() }}</p>
+            </div>
+            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse border-4 border-green-50"></div>
+        </div>
+    </div>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-600">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Total Students</p>
-                    <p class="text-2xl font-black text-gray-900">{{ $studentCount }}</p>
+    <div class="py-12 px-12" style="zoom: 0.75;">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-14">
+                <h1 class="text-8xl font-black text-slate-900 tracking-tighter leading-tight mb-4">Good Afternoon, OSD!</h1>
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{{ $sy }} | {{ $semester }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <div class="bg-[#5BC67F] p-10 rounded-[2.5rem] shadow-xl text-white">
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] opacity-80">Total Incidents</span>
+                    <div class="text-8xl font-black mt-2 tracking-tighter leading-none">{{ $lostCount + $foundCount }}</div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Today's Gate Entries</p>
-                    <p class="text-2xl font-black text-gray-900">{{ $gateEntryCount }}</p>
+                <div class="bg-white p-10 rounded-[2.5rem] border-2 border-slate-50 shadow-sm text-center">
+                    <span class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Pending Reports</span>
+                    <div class="text-8xl font-black text-[#5BC67F] mt-2 tracking-tighter">3</div>
                 </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-600">
-                    <p class="text-xs font-bold text-gray-400 uppercase">Pending Violations</p>
-                    <p class="text-2xl font-black text-gray-900">{{ $pendingViolations }}</p>
-                </div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-600">
-                    <p class="text-xs font-bold text-gray-400 uppercase">IntelliMatches</p>
-                    <p class="text-2xl font-black text-gray-900">{{ $matchCount }} Found</p>
+                <div class="bg-[#F59E0B] p-10 rounded-[2.5rem] shadow-xl text-white text-center">
+                    <span class="text-[11px] font-black uppercase tracking-[0.2em] opacity-80">Active Violations</span>
+                    <div class="text-8xl font-black mt-2 tracking-tighter">{{ $activeViolations }}</div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-xl shadow-sm">
-                    <h3 class="font-bold text-gray-800 mb-4">Instant Student Search</h3>
-                    <form action="{{ route('students.index') }}" method="GET">
-                        <input type="text" name="search" placeholder="Type ID or Name..." 
-                               class="w-full border-gray-200 rounded-lg">
-                        <button class="mt-3 w-full bg-green-700 text-white font-bold py-2 rounded-lg">
-                            Open Profile
-                        </button>
-                    </form>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-12 rounded-[3rem] border-2 border-slate-50 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-[11px] font-black text-slate-300 uppercase tracking-[0.2em]">Intelligence Logs</span>
+                        <div class="text-8xl font-black text-slate-900 mt-2 tracking-tighter">{{ $foundCount + $lostCount }}</div>
+                        <div class="flex gap-4 mt-6">
+                            <span class="px-4 py-2 bg-green-50 text-[#004d32] rounded-lg text-[9px] font-black uppercase">{{ $foundCount }} Found</span>
+                            <span class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-[9px] font-black uppercase">{{ $lostCount }} Lost</span>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="bg-gray-900 p-6 rounded-xl shadow-sm text-white">
-                    <h3 class="font-bold mb-4 text-gray-400 uppercase text-xs">Admin Shortcuts</h3>
-                    <div class="grid grid-cols-2 gap-3">
-                        <a href="{{ route('gate.index') }}" class="bg-white/10 p-4 rounded-lg text-center hover:bg-white/20">
-                            <span class="block text-lg">🚪</span>
-                            <span class="text-xs font-bold">Gate Log</span>
-                        </a>
-                        <a href="{{ route('violations.report') }}" class="bg-white/10 p-4 rounded-lg text-center hover:bg-white/20">
-                            <span class="block text-lg">📊</span>
-                            <span class="text-xs font-bold">Analytics</span>
-                        </a>
+                <div class="bg-slate-900 p-12 rounded-[3rem] shadow-3xl text-white">
+                    <h3 class="text-3xl font-black tracking-tight mb-8">Instant Access</h3>
+                    <div class="flex gap-4">
+                        <a href="{{ route('assets.index') }}" class="flex-1 py-5 bg-white/5 border border-white/10 rounded-2xl text-center text-[9px] font-black uppercase no-underline">IntelliThings</a>
+                        <a href="{{ route('gate.index') }}" class="flex-1 py-5 bg-white/5 border border-white/10 rounded-2xl text-center text-[9px] font-black uppercase no-underline">Gate Logs</a>
                     </div>
                 </div>
             </div>

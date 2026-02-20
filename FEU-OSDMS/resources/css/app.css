@@ -1,3 +1,44 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ROOT LOCKDOWN: Forces the sidebar to touch the floor */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    @apply bg-[#F8FAFB];
+}
+
+@layer components {
+    /* GLOBAL SCALE: Technical high-density feel */
+    .scale-content {
+        zoom: 0.90;
+        @apply antialiased min-h-screen;
+    }
+
+    /* THE FIXED PILLAR: Physically locked to the viewport */
+    .sidebar-fixed {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        height: 100vh;
+        z-index: 50;
+        @apply flex flex-col justify-between bg-[#004d32] shadow-2xl;
+    }
+
+    /* COMPACT BUTTONS */
+    .btn-primary {
+        background: linear-gradient(145deg, #004d32 0%, #003a26 100%);
+        @apply inline-flex items-center justify-center gap-4 px-10 py-5 font-black rounded-[1.5rem] text-white transition-all no-underline;
+    }
+
+    /* UNIFIED PILL DESIGN */
+    .badge {
+        @apply inline-flex items-center justify-center px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.15em] shadow-sm border-[1.5px];
+    }
+    .badge-lost { @apply bg-[#fef2f2] text-[#b91c1c] border-[#fee2e2]; }
+    .badge-success { @apply bg-[#f0fdf4] text-[#166534] border-[#dcfce7]; }
+}

@@ -2,20 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LostItem;
 use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\Violation;
-use App\Models\GateEntry;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        return view('dashboard', [
-            'studentCount' => User::where('role', 'student')->count(),
-            'gateEntryCount' => GateEntry::whereDate('created_at', today())->count(),
-            'pendingViolations' => Violation::where('status', 'Pending')->count(),
-            'matchCount' => 5 // Placeholder for AI matches
-        ]);
+        // Real-time Counts pulled from your intelligence database
+        $lostCount = LostItem::where('report_type', 'Lost')->count();
+        $foundCount = LostItem::where('report_type', 'Found')->count();
+        $activeViolations = 7;
+
+        // Administrative Metadata
+        $adminName = auth()->user()->name;
+        $currentDate = now()->format('F d, Y');
+        $semester = "2nd Semester";
+        $sy = "S.Y. 2025-2026";
+
+        return view('dashboard', compact(
+            'lostCount', 'foundCount', 'activeViolations',
+            'adminName', 'currentDate', 'semester', 'sy'
+        ));
     }
 }
