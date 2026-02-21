@@ -1,35 +1,39 @@
 <x-app-layout>
-    <div class="max-w-6xl mx-auto">
-        <div class="mb-10">
-            <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Good Afternoon, OSD.</h2>
-            <p class="text-slate-500 font-medium">Overview of the current academic term operations.</p>
+    <div class="max-w-7xl mx-auto px-8 lg:px-12 py-12">
+
+        <div class="mb-12">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">Good Afternoon, Admin.</h1>
+            <p class="text-xl text-slate-600 mt-3 font-medium">Here is the overview of current operations.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Assets</span>
-                <p class="text-5xl font-extrabold text-[#004d32] mt-1">{{ $totalAssets }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white p-10 rounded-2xl border-4 border-slate-200 shadow-sm flex flex-col justify-center">
+                <span class="text-base font-bold text-slate-500 uppercase tracking-wide">Total Assets</span>
+                <p class="text-7xl font-extrabold text-[#004d32] mt-4">{{ $totalAssets }}</p>
             </div>
 
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pending Reports</span>
-                <p class="text-5xl font-extrabold text-[#004d32] mt-1">{{ $pendingCount }}</p>
+            <div class="bg-white p-10 rounded-2xl border-4 border-slate-200 shadow-sm flex flex-col justify-center">
+                <span class="text-base font-bold text-slate-500 uppercase tracking-wide">Pending Reports</span>
+                <p class="text-7xl font-extrabold text-[#004d32] mt-4">{{ $pendingCount }}</p>
             </div>
 
-            <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Violations</span>
-                <p class="text-5xl font-extrabold text-[#004d32] mt-1">{{ $activeViolations }}</p>
+            <div class="bg-white p-10 rounded-2xl border-4 border-slate-200 shadow-sm flex flex-col justify-center">
+                <span class="text-base font-bold text-slate-500 uppercase tracking-wide">Active Violations</span>
+                <p class="text-7xl font-extrabold text-[#004d32] mt-4">{{ $activeViolations }}</p>
             </div>
         </div>
 
-        <div class="bg-[#004d32] text-white p-8 rounded-xl flex items-center justify-between">
+        <div class="bg-[#004d32] text-white p-10 lg:p-12 rounded-2xl border-4 border-[#003b26] flex flex-col md:flex-row items-center justify-between gap-10 shadow-lg">
             <div>
-                <h3 class="text-xl font-bold">IntelliThings Visual Matching</h3>
-                <p class="text-white/70 text-sm mt-1">AI resolution is active for the current lost items database.</p>
+                <h2 class="text-3xl font-bold">Smart Scanning is Active</h2>
+                <p class="text-green-50 text-lg mt-4 max-w-3xl leading-relaxed font-medium">
+                    The system is actively monitoring the database. It automatically reads ID cards and checks physical features of lost items to quickly suggest the rightful owner for you.
+                </p>
             </div>
-            <a href="{{ route('assets.index') }}" class="bg-[#FECB02] text-[#004d32] px-6 py-3 rounded-lg font-bold text-sm hover:brightness-105 transition-all">
-                View Asset Records
+            <a href="{{ route('assets.index') }}" class="bg-[#FECB02] text-[#004d32] px-10 py-5 rounded-xl font-bold text-lg hover:bg-yellow-400 transition-colors shadow-sm whitespace-nowrap border-2 border-transparent">
+                View Lost Items
             </a>
         </div>
+
     </div>
 </x-app-layout>

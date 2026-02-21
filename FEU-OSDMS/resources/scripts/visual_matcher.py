@@ -22,13 +22,13 @@ def generate_error(msg):
 def calculate_similarity(img1_path, img2_path, is_stock):
     try:
         if not os.path.exists(img1_path) or not os.path.exists(img2_path):
-            generate_error("File path does not exist on the server.")
+            generate_error("System error: The requested image file could not be found.")
 
         img1_src = cv2.imread(img1_path)
         img2_src = cv2.imread(img2_path)
 
         if img1_src is None or img2_src is None:
-            generate_error("OpenCV could not decode the image files.")
+            generate_error("System error: Could not read the image formats.")
 
         img1 = resize_to_max_dim(img1_src)
         img2 = resize_to_max_dim(img2_src)
@@ -71,7 +71,6 @@ def calculate_similarity(img1_path, img2_path, is_stock):
                 src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
                 dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
-                # RANSAC 10.0 allows 3D object rotation/angles
                 M, mask_geo = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 10.0)
 
                 if mask_geo is not None:
@@ -82,9 +81,8 @@ def calculate_similarity(img1_path, img2_path, is_stock):
                         struct_val = min(100, (inliers / 10) * 100)
                         raw_score = (color_score * 0.3) + (struct_val * 0.7)
                         final_score = min(98, max(76, raw_score + 25)) if inliers >= 4 else min(45, raw_score)
-                        msg = f"Stock Verified: {inliers} points + color match."
+                        msg = "High match found comparing the item to a stock photo."
                     else:
-                        # REAL PHOTO GRADING (Base Structure)
                         if inliers >= 12:
                             struct_score = min(100, 85 + (inlier_ratio * 15))
                         elif inliers >= 6:
@@ -92,36 +90,33 @@ def calculate_similarity(img1_path, img2_path, is_stock):
                         else:
                             struct_score = min(60, inlier_ratio * 150)
 
-                        # THE FIX: Maximum Confidence Scoring!
                         if struct_score >= 75:
-                            # If structure is passing, use the MAX of structure alone vs a slight color hybrid.
-                            # This prevents a bad color score (due to lighting) from pulling a good match below 75%.
                             final_score = max(struct_score, (struct_score * 0.8) + (color_score * 0.2))
+                            msg = "Strong match confirmed based on the object's physical shape and colors."
                         else:
-                            # If structure is weak, use an even 50/50 split so a great color score can save it.
                             final_score = (struct_score * 0.5) + (color_score * 0.5)
+                            msg = "Partial match found based on similarities in shape and color."
 
-                        # Cap it nicely
                         final_score = min(98, max(0, final_score))
-                        msg = f"Verified: {inliers} structural points & {int(color_score)}% color correlation."
                 else:
                     final_score = max(15, color_score * 0.5)
-                    msg = "Structure failed. Relied heavily on color profile."
+                    msg = "Could not confirm physical shape; similarity is based on colors only."
             else:
                 final_score = max(10, color_score * 0.4)
-                msg = "Insufficient features. Scored via color profile."
+                msg = "Not enough clear details. Similarity is based on general colors."
         else:
             final_score = 5
-            msg = "Feature extraction completely failed."
+            msg = "Could not identify any matching features between the images."
 
+        # Simplify output label for the UI
         print(json.dumps({
             "confidence_score": int(final_score),
             "visual_score": int(final_score),
-            "breakdown": f"OpenCV Hybrid: {msg}"
+            "breakdown": f"Analysis Complete: {msg}"
         }))
 
     except Exception as e:
-        generate_error(f"Python Crash: {str(e)}")
+        generate_error(f"Analysis failed to run: {str(e)}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -135,4 +130,4 @@ if __name__ == "__main__":
     except SystemExit:
         pass
     except Exception as e:
-        generate_error(f"Argument Parsing Error: {str(e)}")
+        generate_error(f"System Error: {str(e)}")
