@@ -4,19 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class StudentProfileController extends Controller
 {
     /**
      * Display the Student Directory with search functionality.
-     * This fulfills the 'Efficiency' goal by replacing manual NetSuite searches.
      */
     public function index(Request $request)
     {
-        // Get the search term from the URL (e.g., ?search=Jose)
         $search = $request->input('search');
 
-        // Fetch students, filtering by Name or ID Number if a search term exists
         $students = User::where('role', 'student')
             ->when($search, function ($query, $search) {
                 return $query->where('id_number', 'like', "%{$search}%")
@@ -29,14 +27,52 @@ class StudentProfileController extends Controller
     }
 
     /**
-     * Show a specific student's profile and disciplinary history.
-     * Use $student_id to match the {student_id} wildcard in web.php.
+     * BULK CSV IMPORT FEATURE
+     * Defends against manual data entry for large university populations.
      */
-    public function show($student_id) 
+    public function import(Request $request)
     {
-        // Eager load violations and lost items to show the 'Digitized Record'
-        $student = User::with(['violations', 'lostItems'])->findOrFail($student_id);
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt|max:2048'
+        ]);
 
+        $file = $request->file('csv_file');
+        $handle = fopen($file->path(), 'r');
+
+        // Skip the header row
+        fgetcsv($handle);
+
+        $importedCount = 0;
+
+        // Loop through the CSV rows
+        while (($data = fgetcsv($handle)) !== FALSE) {
+            // Ensure the row has enough columns (Name, ID, Email, Program, Specialization)
+            if (count($data) >= 3) {
+                User::updateOrCreate(
+                    ['email' => trim($data[2])], // Unique identifier (Email)
+                    [
+                        'name' => trim($data[0]),
+                        'id_number' => trim($data[1]),
+                        'program_code' => trim($data[3] ?? 'N/A'),
+                        'specialization' => trim($data[4] ?? 'General'),
+                        'role' => 'student',
+                        'password' => Hash::make(trim($data[1])), // Default password is their ID number
+                    ]
+                );
+                $importedCount++;
+            }
+        }
+        fclose($handle);
+
+        return redirect()->route('students.index')->with('success', "System initialized: $importedCount student records successfully imported.");
+    }
+
+    /**
+     * Show a specific student's profile and disciplinary history.
+     */
+    public function show($student_id)
+    {
+        $student = User::with(['violations', 'lostItems'])->findOrFail($student_id);
         return view('students.show', compact('student'));
     }
 }

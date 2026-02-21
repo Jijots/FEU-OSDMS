@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- STUDENT PROFILES & SEARCH ---
     Route::get('/students', [StudentProfileController::class, 'index'])->name('students.index');
+    Route::post('/students/import', [StudentProfileController::class, 'import'])->name('students.import'); // NEW IMPORT ROUTE
     Route::get('/students/{student_id}', [StudentProfileController::class, 'show'])->name('students.show');
 
     // --- DISCIPLINARY HUB (Violations) ---
