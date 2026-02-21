@@ -15,4 +15,12 @@ class ViolationReportController extends Controller
         // Pass the $violations variable to the report.blade.php view
         return view('violations.report', compact('violations'));
     }
+
+    public function destroy($id)
+    {
+        $violation = \App\Models\Violation::findOrFail($id);
+        $violation->delete();
+
+        return redirect()->route('violations.report')->with('success', 'Disciplinary record permanently deleted.');
+    }
 }

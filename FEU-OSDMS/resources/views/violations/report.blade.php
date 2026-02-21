@@ -1,6 +1,13 @@
 <x-app-layout>
     <div class="max-w-7xl mx-auto px-8 lg:px-12 py-10">
 
+        @if(session('success'))
+            <div class="mb-8 p-5 bg-green-50 border-2 border-green-200 rounded-2xl flex items-center gap-4 shadow-sm">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <p class="text-base font-bold text-green-800">{{ session('success') }}</p>
+            </div>
+        @endif
+
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Violation Reports</h1>
@@ -48,7 +55,7 @@
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Student Info</th>
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Offense Category</th>
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide text-center">Status</th>
-                            <th class="px-8 py-5 text-right text-sm font-bold text-slate-500 uppercase tracking-wide">Action</th>
+                            <th class="px-8 py-5 text-right text-sm font-bold text-slate-500 uppercase tracking-wide">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y-2 divide-slate-100">
@@ -80,9 +87,18 @@
                                     </span>
                                 </td>
                                 <td class="px-8 py-5 text-right">
-                                    <a href="{{ route('violations.show', $violation->id) }}" class="inline-block px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:text-[#004d32] hover:border-[#004d32] hover:bg-green-50 transition-all shadow-sm">
-                                        Review Case
-                                    </a>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <form action="{{ route('violations.destroy', $violation->id) }}" method="POST" onsubmit="return confirm('Permanently delete this violation record?');">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border-2 border-transparent hover:border-red-200" title="Delete Record">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </form>
+
+                                        <a href="{{ route('violations.show', $violation->id) }}" class="inline-block px-5 py-2.5 bg-white border-2 border-slate-200 text-slate-600 text-sm font-bold rounded-xl hover:text-[#004d32] hover:border-[#004d32] hover:bg-green-50 transition-all shadow-sm">
+                                            Review Case
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
