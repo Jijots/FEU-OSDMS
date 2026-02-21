@@ -37,50 +37,38 @@ class AssetMatchingController extends Controller
     /**
      * Automated Recovery Vault Scan for the Sidebar/Dashboard listing.
      */
+    /**
+     * Automated Recovery Vault Scan for the Sidebar/Dashboard listing.
+     * UPGRADED: 100% PHP Local Hardware Bypass to protect Gemini API Quotas.
+     */
     public function lostIds()
     {
+        // 1. Grab the students from the local database
         $students = User::select('id', 'name', 'id_number')->get();
 
-        $env = [
-            'SystemRoot' => 'C:\\Windows',
-            'windir'     => 'C:\\Windows',
-            'HOME'       => 'C:\\Users\\Joss',
-            'USERPROFILE' => 'C:\\Users\\Joss',
-            'GOOGLE_API_KEY' => env('GOOGLE_API_KEY'),
-        ];
-
+        // 2. Grab the pending IDs
         $ids = LostItem::where('item_category', 'ID / Identification')
             ->where('report_type', 'Found')
             ->where('status', '!=', 'Claimed')
             ->latest()
             ->get()
-            ->map(function ($item) use ($students, $env) {
-                $process = new Process([
-                    $this->pythonPath,
-                    base_path('resources/scripts/semantic_matcher.py'),
-                    $item->description,
-                    '',
-                    '',
-                    $students->toJson()
-                ], null, $env);
+            ->map(function ($item) use ($students) {
 
-                $process->run();
+                // 3. FAST HARDWARE BYPASS (No Python, No Google API Limits!)
+                // Extracts the 9-digit ID number from the text description
+                preg_match('/\d{9}/', $item->description, $matches);
+                $extractedId = !empty($matches) ? $matches[0] : '';
 
-                if ($process->isSuccessful()) {
-                    $output = $process->getOutput();
-                    $start = strpos($output, '{');
-                    $end = strrpos($output, '}') + 1;
+                // 4. Instantly check if that ID exists in your local student list
+                if ($extractedId) {
+                    $matchedStudent = $students->firstWhere('id_number', $extractedId);
 
-                    if ($start !== false) {
-                        $cleanJson = substr($output, $start, $end - $start);
-                        $result = json_decode($cleanJson, true);
-
-                        if ($result && !empty($result['matched_student_id'])) {
-                            $item->suggested_owner = User::find($result['matched_student_id']);
-                            $item->confidence = ($result['confidence_score'] ?? 0) / 100;
-                        }
+                    if ($matchedStudent) {
+                        $item->suggested_owner = $matchedStudent;
+                        $item->confidence = 1.0; // 100% Match
                     }
                 }
+
                 return $item;
             });
 
@@ -227,7 +215,8 @@ class AssetMatchingController extends Controller
                 $request->input('manual_name', ''),
                 $request->input('manual_id', ''),
                 $request->input('manual_program', ''),
-                $students->toJson()
+                $students->toJson(),
+                $uploadedImagePath // <--- THE MISSING PIECE IS NOW HERE
             ];
         } else {
             // 2. THIS IS FOR ALL OTHER LOST ITEMS (Visual Matcher)
@@ -269,6 +258,19 @@ class AssetMatchingController extends Controller
                 if ($targetItem->item_category === 'ID / Identification' && !empty($result['matched_student_id'])) {
                     $student = User::find($result['matched_student_id']);
                     $breakdown = $result['breakdown'] ?? ("Gemini Verified: " . ($student->name ?? 'Unknown'));
+
+                    // --- THE MISSING CACHING LOGIC IS HERE ---
+                    // If Gemini finds a high-confidence match, we append the ID to the description.
+                    // This permanently triggers the 0-Cost PHP Hardware Bypass for all future page loads!
+                    if ($student && $similarityScore >= 75) {
+                        if (!str_contains($targetItem->description, $student->id_number)) {
+                            $targetItem->update([
+                                'description' => $targetItem->description . ' | AI Verified ID: ' . $student->id_number
+                            ]);
+                        }
+                    }
+                    // -----------------------------------------
+
                 } else {
                     $breakdown = $result['breakdown'] ?? $result['reason'] ?? 'Visual scan complete.';
                 }
