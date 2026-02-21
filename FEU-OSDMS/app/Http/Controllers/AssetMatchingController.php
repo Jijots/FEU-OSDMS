@@ -28,15 +28,38 @@ class AssetMatchingController extends Controller
         return $path;
     }
 
-    public function index()
+    /**
+     * THE UPGRADE: Added Search, Tab Filtering, and fixed the $items variable.
+     */
+    public function index(Request $request)
     {
-        $assets = LostItem::oldest()->get();
-        return view('assets.index', compact('assets'));
+        $query = LostItem::query();
+
+        // 1. Tab Filter: Toggle between 'Found' and 'Missing' items (Defaults to Found)
+        $type = $request->input('type', 'Found');
+        $query->where('report_type', $type);
+
+        // 2. Routing: Exclude ID cards from the general 'Found' list because they belong in the ID Vault
+        if ($type === 'Found') {
+            $query->where('item_category', '!=', 'ID / Identification');
+        }
+
+        // 3. Search Bar Logic: Search by Tracking Number, Category, or Location
+        if ($search = $request->input('search')) {
+            $query->where(function($q) use ($search) {
+                $q->where('tracking_number', 'LIKE', "%{$search}%")
+                  ->orWhere('item_category', 'LIKE', "%{$search}%")
+                  ->orWhere('location_found', 'LIKE', "%{$search}%")
+                  ->orWhere('location_lost', 'LIKE', "%{$search}%");
+            });
+        }
+
+        // 4. Send the data to the view as '$items' to match our new Blade file
+        $items = $query->latest()->get();
+
+        return view('assets.index', compact('items'));
     }
 
-    /**
-     * Automated Recovery Vault Scan for the Sidebar/Dashboard listing.
-     */
     /**
      * Automated Recovery Vault Scan for the Sidebar/Dashboard listing.
      * UPGRADED: 100% PHP Local Hardware Bypass to protect Gemini API Quotas.
@@ -216,7 +239,7 @@ class AssetMatchingController extends Controller
                 $request->input('manual_id', ''),
                 $request->input('manual_program', ''),
                 $students->toJson(),
-                $uploadedImagePath // <--- THE MISSING PIECE IS NOW HERE
+                $uploadedImagePath
             ];
         } else {
             // 2. THIS IS FOR ALL OTHER LOST ITEMS (Visual Matcher)
@@ -259,9 +282,7 @@ class AssetMatchingController extends Controller
                     $student = User::find($result['matched_student_id']);
                     $breakdown = $result['breakdown'] ?? ("Gemini Verified: " . ($student->name ?? 'Unknown'));
 
-                    // --- THE MISSING CACHING LOGIC IS HERE ---
-                    // If Gemini finds a high-confidence match, we append the ID to the description.
-                    // This permanently triggers the 0-Cost PHP Hardware Bypass for all future page loads!
+                    // --- CACHING LOGIC ---
                     if ($student && $similarityScore >= 75) {
                         if (!str_contains($targetItem->description, $student->id_number)) {
                             $targetItem->update([
@@ -269,7 +290,6 @@ class AssetMatchingController extends Controller
                             ]);
                         }
                     }
-                    // -----------------------------------------
 
                 } else {
                     $breakdown = $result['breakdown'] ?? $result['reason'] ?? 'Visual scan complete.';

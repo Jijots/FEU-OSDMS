@@ -1,63 +1,64 @@
 <x-app-layout>
-    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
-        <div class="flex items-center gap-10">
-            <a href="{{ route('assets.index') }}" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">System Terminal</p>
-                <p class="text-xs font-black text-[#004d32] tracking-tighter">OSD-ADMIN-{{ auth()->id() }}</p>
+    <div class="max-w-7xl mx-auto px-8 py-10">
+
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">ID Recovery Vault</h1>
+                <p class="text-base text-slate-500 font-medium mt-1">Pending student identification cards requiring visual verification.</p>
             </div>
-            <a href="{{ route('assets.create-id') }}" class="px-8 py-3.5 bg-[#004d32] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FECB02] hover:text-[#004d32] transition-all no-underline">
-                LOG NEW ID
+            <a href="{{ route('assets.create-id') }}" class="px-6 py-3 bg-[#004d32] text-white font-bold rounded-xl hover:bg-green-800 transition-colors shadow-sm text-sm">
+                Log Found ID Card
             </a>
         </div>
-    </div>
 
-    <div class="py-12 bg-[#F8FAFB]" style="zoom: 0.90;">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8">
-            <div class="mb-14">
-                <h1 class="text-7xl font-black text-slate-900 tracking-tighter leading-none uppercase">ID Recovery Vault</h1>
-                <p class="text-xl text-slate-400 font-medium mt-4">Semantic cross-referencing against the official student directory.</p>
-            </div>
-
-            <div class="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div class="bg-white border-2 border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+            <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse($ids as $item)
-                            <tr class="group hover:bg-slate-50/40 transition-all duration-300">
-                                <td class="px-12 py-10 text-center w-32">
-                                    <span class="text-sm font-black text-slate-200 group-hover:text-slate-400">#{{ str_pad($item->id, 2, '0', STR_PAD_LEFT) }}</span>
+                    <thead>
+                        <tr class="bg-slate-50 border-b-2 border-slate-200">
+                            <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Tracking No.</th>
+                            <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">ID Information</th>
+                            <th class="px-8 py-5 text-center text-sm font-bold text-slate-500 uppercase tracking-wide">System Match Status</th>
+                            <th class="px-8 py-5 text-right text-sm font-bold text-slate-500 uppercase tracking-wide">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y-2 divide-slate-100">
+                        @forelse ($ids as $item)
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-8 py-5">
+                                    <span class="text-sm font-bold text-slate-800">#{{ $item->tracking_number }}</span>
                                 </td>
-                                <td class="px-8 py-10">
-                                    <div class="flex items-center gap-8">
-                                        <div class="w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
-                                            <img src="{{ asset($item->image_path) }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/placeholder.png') }}'">
-                                        </div>
-                                        <div>
-                                            <p class="font-black text-slate-900 text-2xl tracking-tight mb-1">{{ $item->report_type }} ID</p>
-                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{{ \Illuminate\Support\Str::limit($item->description, 50) }}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-8 py-10 text-center">
-                                    @if(isset($item->confidence))
-                                        <span class="inline-flex px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest bg-yellow-50 text-yellow-700">AI MATCH: {{ $item->confidence * 100 }}%</span>
+                                <td class="px-8 py-5">
+                                    @if(isset($item->suggested_owner))
+                                        <p class="text-sm font-bold text-[#004d32]">{{ $item->suggested_owner->name }}</p>
+                                        <p class="text-xs font-semibold text-slate-500 mt-0.5">{{ $item->suggested_owner->id_number }}</p>
                                     @else
-                                        <span class="inline-flex px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest bg-slate-50 text-slate-500">PENDING SCAN</span>
+                                        <p class="text-sm font-medium text-slate-600 truncate max-w-xs">{{ $item->description }}</p>
                                     @endif
                                 </td>
-                                <td class="px-12 py-10 text-right">
-                                    <a href="{{ route('assets.show', $item->id) }}" style="background-color: #0f172a; color: white;" class="inline-flex items-center justify-center px-8 py-3.5 text-[10px] font-black rounded-2xl shadow-lg hover:bg-[#004d32] transition-all no-underline tracking-[0.15em]">
-                                        SCAN & MATCH
+                                <td class="px-8 py-5 text-center">
+                                    @if(isset($item->confidence))
+                                        <span class="inline-flex px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                            Smart Match: {{ $item->confidence * 100 }}%
+                                        </span>
+                                    @else
+                                        <span class="inline-flex px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                            Awaiting Verification
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-8 py-5 text-right">
+                                    <a href="{{ route('assets.show', $item->id) }}" class="px-6 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-[#004d32] transition-colors shadow-sm inline-block">
+                                        Scan & Verify
                                     </a>
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-8 py-40 text-center text-slate-300 font-black uppercase tracking-[0.2em] text-xs">Vault Secure: Zero Pending IDs</td></tr>
+                            <tr>
+                                <td colspan="4" class="px-8 py-32 text-center text-slate-400 font-bold text-base">
+                                    The ID Vault is currently empty. No pending IDs found.
+                                </td>
+                            </tr>
                         @endforelse
                     </tbody>
                 </table>
