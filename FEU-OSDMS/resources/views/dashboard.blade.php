@@ -1,26 +1,4 @@
 <x-app-layout>
-    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
-        <div class="flex items-center gap-10">
-            <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <a href="{{ route('dashboard') }}" class="hover:opacity-80 transition-opacity">
-                <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
-            </a>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">
-                    {{ str_contains(auth()->user()->email ?? '', 'admin') ? 'System Terminal' : 'Checkpoint Terminal' }}
-                </p>
-                <p class="text-xs font-black text-[#004d32] tracking-tighter">
-                    {{ str_contains(auth()->user()->email ?? '', 'admin') ? 'ADMIN' : 'GUARD' }}-{{ auth()->id() }}
-                </p>
-            </div>
-            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse border-4 border-green-50"></div>
-        </div>
-    </div>
-
     <div class="py-12 bg-[#F8FAFB]" style="zoom: 0.90;">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
 

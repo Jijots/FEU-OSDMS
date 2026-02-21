@@ -15,7 +15,7 @@
         </a>
     </div>
 
-    <div class="px-5 py-4 space-y-2 flex-1 overflow-y-auto">
+    <div class="px-5 py-4 space-y-2 flex-1 overflow-y-auto custom-scrollbar">
         @php $activeClass = 'bg-[#FECB02] shadow-xl'; @endphp
 
         <a href="{{ route('dashboard') }}" class="flex items-center gap-5 px-7 py-4 rounded-[2rem] transition-all no-underline group {{ request()->routeIs('dashboard') ? $activeClass : 'hover:bg-white/5' }}">
@@ -32,7 +32,6 @@
                 </div>
                 <span class="text-[10px] font-black uppercase tracking-widest {{ request()->routeIs('assets.index') ? 'text-[#004d32]' : 'text-white/40 group-hover:text-white' }}">Asset Management</span>
             </a>
-
             <a href="{{ route('assets.lost-ids') }}" class="flex items-center gap-5 px-10 py-3 rounded-[2rem] transition-all no-underline group {{ request()->routeIs('assets.lost-ids') ? 'text-[#FECB02]' : 'text-white/20 hover:text-white hover:bg-white/5' }}">
                 <div class="w-1.5 h-1.5 rounded-full {{ request()->routeIs('assets.lost-ids') ? 'bg-[#FECB02]' : 'bg-white/20' }}"></div>
                 <span class="text-[9px] font-black uppercase tracking-widest">ID Recovery Vault</span>

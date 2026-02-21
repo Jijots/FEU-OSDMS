@@ -1,63 +1,99 @@
 <x-app-layout>
-    <div class="py-12 bg-[#FCFCFC]">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-slate-200 z-40 px-8 py-4 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-6">
+            <button @click="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            </button>
+            <h1 class="text-xl font-bold text-slate-800 tracking-tight">Student Directory</h1>
+        </div>
 
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between mb-10 gap-6">
-                <div class="space-y-1">
-                    <h1 class="text-6xl font-black text-slate-900 tracking-tighter leading-none">Student Directory</h1>
-                    <p class="text-lg text-slate-400 font-medium tracking-tight text-uppercase">Centralized access to digitized disciplinary records.</p>
-                </div>
+        <div class="flex items-center gap-4">
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Admin Portal</p>
+                <p class="text-sm font-bold text-[#004d32]">OSD-ADMIN-{{ auth()->id() }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-[#004d32] font-bold border border-green-200">
+                {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+            </div>
+        </div>
+    </div>
 
-                <form action="{{ route('students.index') }}" method="GET" class="relative w-full lg:w-96">
-                    <input type="text" name="search" value="{{ $search }}"
-                           placeholder="Search by Name or ID..."
-                           class="w-full pl-14 pr-6 py-4 rounded-3xl border-none bg-white shadow-xl shadow-slate-200/50 focus:ring-4 focus:ring-[#004d32]/10 transition-all font-bold text-slate-700">
-                    <svg class="w-6 h-6 absolute left-5 top-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </form>
+    <div class="max-w-7xl mx-auto px-8 py-8">
+
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <div class="relative w-full sm:w-96">
+                <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <input type="text" placeholder="Search by name or ID number..." class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 focus:border-[#004d32] focus:ring-1 focus:ring-[#004d32] text-sm font-medium placeholder-slate-400 transition-all">
             </div>
 
-            <div class="bg-white rounded-[3.5rem] shadow-[0_45px_90px_-20px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-slate-50/50 border-b border-slate-100 text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                            <th class="px-10 py-8">Student Identification</th>
-                            <th class="px-6 py-8">Academic Track</th>
-                            <th class="px-6 py-8 text-center">Record Status</th>
-                            <th class="px-10 py-8 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-50">
-                        @forelse($students as $student)
-                        <tr class="group hover:bg-slate-50/50 transition-all">
-                            <td class="px-10 py-10">
-                                <div class="flex flex-col">
-                                    <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">{{ $student->name }}</span>
-                                    <span class="text-xs font-bold text-slate-300 mt-2 uppercase tracking-widest">UID: {{ $student->id_number }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-10">
-                                <span class="text-sm font-bold text-slate-500 uppercase">{{ $student->course_or_department ?? 'General Education' }}</span>
-                            </td>
-                            <td class="px-6 py-10 text-center">
-                                <span class="px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest {{ $student->violations_count > 0 ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100' }}">
-                                    {{ $student->violations_count > 0 ? 'Under Review' : 'Clear Standing' }}
-                                </span>
-                            </td>
-                            <td class="px-10 py-10 text-right">
-                                <a href="{{ route('students.show', $student->id) }}" class="inline-flex items-center px-8 py-3 bg-[#004d32] text-white text-[10px] font-black rounded-2xl shadow-lg hover:brightness-110 transition-all uppercase tracking-widest">
-                                    Open Dossier
-                                </a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="4" class="py-32 text-center text-slate-200 font-black uppercase tracking-[0.4em]">No Active Transcripts Found</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-                <div class="px-10 py-8 bg-slate-50/50 border-t border-slate-100">
-                    {{ $students->links() }}
+            <div class="flex gap-3 w-full sm:w-auto">
+                <button class="px-4 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Import CSV
+                </button>
+                <button class="px-4 py-2.5 bg-[#004d32] text-white rounded-lg text-sm font-semibold hover:bg-green-800 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Add Student
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200">
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">ID Number</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">Student Name</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">Program</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-slate-700 font-mono">202310790</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-semibold text-slate-800">
+                            Tuazon, Jose Jerry Jr.
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
+                                BSITWMA
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-slate-400 hover:text-[#004d32] font-semibold text-sm transition-colors">View Profile</button>
+                        </td>
+                    </tr>
+
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-slate-700 font-mono">202310124</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-semibold text-slate-800">
+                            Dela Cruz, Juan
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">
+                                BSCS
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-slate-400 hover:text-[#004d32] font-semibold text-sm transition-colors">View Profile</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <p class="text-xs text-slate-500 font-medium">Showing <span class="font-bold text-slate-700">1</span> to <span class="font-bold text-slate-700">2</span> of <span class="font-bold text-slate-700">2</span> entries</p>
+                <div class="flex gap-1">
+                    <button class="px-3 py-1 rounded border border-slate-200 text-slate-400 text-sm font-medium hover:bg-slate-100 transition-colors" disabled>Prev</button>
+                    <button class="px-3 py-1 rounded border border-[#004d32] bg-[#004d32] text-white text-sm font-medium shadow-sm">1</button>
+                    <button class="px-3 py-1 rounded border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-100 transition-colors">Next</button>
                 </div>
             </div>
         </div>
+
     </div>
 </x-app-layout>
