@@ -5,27 +5,15 @@ import json
 import argparse
 import os
 
-# --- NEW HELPER FUNCTION: Letterboxing ---
-def resize_with_padding(image, target_size=1024):
-    """Resizes image to fit within target_size square without stretching."""
+# --- HELPER: Proportional Resize ---
+def resize_to_max_dim(image, max_dim=1024):
+    """Resizes image keeping aspect ratio. No black borders."""
     h, w = image.shape[:2]
-    # Calculate scale to fit within the box
-    scale = min(target_size / w, target_size / h)
+    if max(h, w) <= max_dim:
+        return image
+    scale = max_dim / float(max(h, w))
     nw, nh = int(w * scale), int(h * scale)
-
-    # Resize preserving aspect ratio
-    resized_image = cv2.resize(image, (nw, nh), interpolation=cv2.INTER_AREA)
-
-    # Create black canvas
-    new_image = np.zeros((target_size, target_size, 3), dtype=np.uint8)
-
-    # Center the image
-    top = (target_size - nh) // 2
-    left = (target_size - nw) // 2
-    new_image[top:top+nh, left:left+nw] = resized_image
-
-    return new_image
-# -----------------------------------------
+    return cv2.resize(image, (nw, nh), interpolation=cv2.INTER_AREA)
 
 def generate_error(msg):
     print(json.dumps({"confidence_score": 0, "visual_score": 0, "breakdown": msg}))
@@ -42,114 +30,95 @@ def calculate_similarity(img1_path, img2_path, is_stock):
         if img1_src is None or img2_src is None:
             generate_error("OpenCV could not decode the image files.")
 
-        # --- THE FIX: USE PADDING INSTEAD OF STRETCHING ---
-        img1 = resize_with_padding(img1_src)
-        img2 = resize_with_padding(img2_src)
-        # --------------------------------------------------
+        img1 = resize_to_max_dim(img1_src)
+        img2 = resize_to_max_dim(img2_src)
 
-        # Use full image mask (no center circle blindspot)
-        mask = np.ones(img1.shape[:2], dtype=np.uint8) * 255
+        mask1 = np.ones(img1.shape[:2], dtype=np.uint8) * 255
+        mask2 = np.ones(img2.shape[:2], dtype=np.uint8) * 255
+
+        # --- UNIVERSAL COLOR CHECK ---
+        h1 = cv2.calcHist([img1], [0, 1, 2], mask1, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        h2 = cv2.calcHist([img2], [0, 1, 2], mask2, [8, 8, 8], [0, 256, 0, 256, 0, 256])
+        color_sim = cv2.compareHist(cv2.normalize(h1, h1), cv2.normalize(h2, h2), cv2.HISTCMP_CORREL)
+        color_score = max(0, color_sim) * 100
+
+        gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+        gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
         if is_stock:
-            # --- PATHWAY A: STOCK ALGORITHM (Unchanged) ---
-            h1 = cv2.calcHist([img1], [0, 1, 2], mask, [8, 8, 8], [0, 256, 0, 256, 0, 256])
-            h2 = cv2.calcHist([img2], [0, 1, 2], mask, [8, 8, 8], [0, 256, 0, 256, 0, 256])
-            color_sim = cv2.compareHist(cv2.normalize(h1, h1), cv2.normalize(h2, h2), cv2.HISTCMP_CORREL)
-
-            gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-            gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
             clahe = cv2.createCLAHE(clipLimit=6.0, tileGridSize=(8,8))
-
-            sift = cv2.SIFT_create(nfeatures=5000, contrastThreshold=0.02)
-            kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask)
-            kp2, des2 = sift.detectAndCompute(clahe.apply(gray2), mask)
-
-            flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=100))
-
-            if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
-                matches = flann.knnMatch(des1, des2, k=2)
-                good = []
-                for m_n in matches:
-                    if len(m_n) == 2:
-                        m, n = m_n
-                        if m.distance < 0.85 * n.distance:
-                            good.append(m)
-
-                if len(good) > 5:
-                    src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-                    dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-                    M, mask_geo = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 6.0)
-
-                    if mask_geo is not None:
-                        inliers = int(np.sum(mask_geo))
-                        color_val = max(0, color_sim) * 100
-                        struct_val = min(100, (inliers / 10) * 100)
-                        raw_score = (color_val * 0.3) + (struct_val * 0.7)
-
-                        if inliers >= 4:
-                            final_score = min(98, max(76, raw_score + 25))
-                            msg = f"Stock Verified: {inliers} structural points + core color match."
-                        else:
-                            final_score = min(45, raw_score)
-                            msg = f"Weak alignment: Only {inliers} structural points."
-                    else:
-                        final_score = max(5, color_sim * 40)
-                        msg = "No geometric structure found. Relied on color."
-                else:
-                    final_score = max(5, color_sim * 40)
-                    msg = "Insufficient cross-domain features. Relied on color."
-            else:
-                final_score = 5
-                msg = "Feature extraction failed (Stock)."
-
+            sift = cv2.SIFT_create(nfeatures=10000, contrastThreshold=0.02)
         else:
-            # --- PATHWAY B: STANDARD REAL PHOTO (Unchanged thresholds) ---
-            gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-            gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-            clahe = cv2.createCLAHE(clipLimit=5.0, tileGridSize=(8,8))
+            clahe = cv2.createCLAHE(clipLimit=4.0, tileGridSize=(8,8))
+            sift = cv2.SIFT_create(nfeatures=10000)
 
-            sift = cv2.SIFT_create(nfeatures=5000)
-            kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask)
-            kp2, des2 = sift.detectAndCompute(clahe.apply(gray2), mask)
+        kp1, des1 = sift.detectAndCompute(clahe.apply(gray1), mask1)
+        kp2, des2 = sift.detectAndCompute(clahe.apply(gray2), mask2)
 
-            flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=100))
+        flann = cv2.FlannBasedMatcher(dict(algorithm=1, trees=5), dict(checks=100))
 
-            if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
-                matches = flann.knnMatch(des1, des2, k=2)
-                good = []
-                for m_n in matches:
-                    if len(m_n) == 2:
-                        m, n = m_n
-                        if m.distance < 0.75 * n.distance:
-                            good.append(m)
+        if des1 is not None and des2 is not None and len(des1) > 0 and len(des2) > 0:
+            matches = flann.knnMatch(des1, des2, k=2)
+            good = []
+            for m_n in matches:
+                if len(m_n) == 2:
+                    m, n = m_n
+                    # RRL STRICT 0.75 RATIO ENFORCED
+                    if m.distance < 0.75 * n.distance:
+                        good.append(m)
 
-                if len(good) > 10:
-                    src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-                    dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-                    M, mask_geo = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+            if len(good) >= 5:
+                src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+                dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
-                    if mask_geo is not None:
-                        inliers = int(np.sum(mask_geo))
-                        inlier_ratio = inliers / len(good)
+                # RANSAC 10.0 allows 3D object rotation/angles
+                M, mask_geo = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 10.0)
 
-                        if inliers > 25:
-                            final_score = min(98, 75 + (inlier_ratio * 30))
-                        elif inliers > 10:
-                            final_score = min(84, 60 + (inlier_ratio * 40))
-                        else:
-                            final_score = min(45, inlier_ratio * 150)
-                        msg = f"SIFT Verified: {inliers} structural points match."
+                if mask_geo is not None:
+                    inliers = int(np.sum(mask_geo))
+                    inlier_ratio = inliers / len(good)
+
+                    if is_stock:
+                        struct_val = min(100, (inliers / 10) * 100)
+                        raw_score = (color_score * 0.3) + (struct_val * 0.7)
+                        final_score = min(98, max(76, raw_score + 25)) if inliers >= 4 else min(45, raw_score)
+                        msg = f"Stock Verified: {inliers} points + color match."
                     else:
-                        final_score = 10
-                        msg = "Structural mismatch."
-                else:
-                    final_score = 5
-                    msg = "Insufficient features."
-            else:
-                final_score = 5
-                msg = "Feature extraction failed (Real)."
+                        # REAL PHOTO GRADING (Base Structure)
+                        if inliers >= 12:
+                            struct_score = min(100, 85 + (inlier_ratio * 15))
+                        elif inliers >= 6:
+                            struct_score = min(84, 75 + (inlier_ratio * 10))
+                        else:
+                            struct_score = min(60, inlier_ratio * 150)
 
-        print(json.dumps({"confidence_score": int(final_score), "visual_score": int(final_score), "breakdown": msg}))
+                        # THE FIX: Maximum Confidence Scoring!
+                        if struct_score >= 75:
+                            # If structure is passing, use the MAX of structure alone vs a slight color hybrid.
+                            # This prevents a bad color score (due to lighting) from pulling a good match below 75%.
+                            final_score = max(struct_score, (struct_score * 0.8) + (color_score * 0.2))
+                        else:
+                            # If structure is weak, use an even 50/50 split so a great color score can save it.
+                            final_score = (struct_score * 0.5) + (color_score * 0.5)
+
+                        # Cap it nicely
+                        final_score = min(98, max(0, final_score))
+                        msg = f"Verified: {inliers} structural points & {int(color_score)}% color correlation."
+                else:
+                    final_score = max(15, color_score * 0.5)
+                    msg = "Structure failed. Relied heavily on color profile."
+            else:
+                final_score = max(10, color_score * 0.4)
+                msg = "Insufficient features. Scored via color profile."
+        else:
+            final_score = 5
+            msg = "Feature extraction completely failed."
+
+        print(json.dumps({
+            "confidence_score": int(final_score),
+            "visual_score": int(final_score),
+            "breakdown": f"OpenCV Hybrid: {msg}"
+        }))
 
     except Exception as e:
         generate_error(f"Python Crash: {str(e)}")

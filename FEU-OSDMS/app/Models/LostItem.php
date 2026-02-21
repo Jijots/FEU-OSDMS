@@ -21,6 +21,11 @@ class LostItem extends Model
         'flagged_for_review'
     ];
 
+    // THE FIX: Tell Laravel that 'date_lost' is a Datetime object, not a string
+    protected $casts = [
+        'date_lost' => 'datetime',
+    ];
+
     public function getImageUrlAttribute()
     {
         if (!$this->image_path) {

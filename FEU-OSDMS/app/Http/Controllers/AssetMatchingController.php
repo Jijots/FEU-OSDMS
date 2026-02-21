@@ -15,6 +15,19 @@ class AssetMatchingController extends Controller
      */
     protected $pythonPath = 'C:\\Users\\Joss\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\\python.exe';
 
+    /**
+     * Helper method to convert Cropper.js Base64 strings into physical JPEG files.
+     */
+    private function saveBase64Image($base64String, $folder = 'assets')
+    {
+        $image_parts = explode(";base64,", $base64String);
+        $image_base64 = base64_decode($image_parts[1]);
+        $fileName = uniqid() . '.jpg';
+        $path = $folder . '/' . $fileName;
+        Storage::disk('public')->put($path, $image_base64);
+        return $path;
+    }
+
     public function index()
     {
         $assets = LostItem::oldest()->get();
@@ -28,7 +41,6 @@ class AssetMatchingController extends Controller
     {
         $students = User::select('id', 'name', 'id_number')->get();
 
-        // System environment to prevent Winsock/Runtime errors.
         $env = [
             'SystemRoot' => 'C:\\Windows',
             'windir'     => 'C:\\Windows',
@@ -46,16 +58,27 @@ class AssetMatchingController extends Controller
                 $process = new Process([
                     $this->pythonPath,
                     base_path('resources/scripts/semantic_matcher.py'),
-                    $item->description, '', '', $students->toJson()
+                    $item->description,
+                    '',
+                    '',
+                    $students->toJson()
                 ], null, $env);
 
                 $process->run();
 
                 if ($process->isSuccessful()) {
-                    $result = json_decode($process->getOutput(), true);
-                    if ($result && !empty($result['matched_student_id'])) {
-                        $item->suggested_owner = User::find($result['matched_student_id']);
-                        $item->confidence = ($result['confidence_score'] ?? 0) / 100;
+                    $output = $process->getOutput();
+                    $start = strpos($output, '{');
+                    $end = strrpos($output, '}') + 1;
+
+                    if ($start !== false) {
+                        $cleanJson = substr($output, $start, $end - $start);
+                        $result = json_decode($cleanJson, true);
+
+                        if ($result && !empty($result['matched_student_id'])) {
+                            $item->suggested_owner = User::find($result['matched_student_id']);
+                            $item->confidence = ($result['confidence_score'] ?? 0) / 100;
+                        }
                     }
                 }
                 return $item;
@@ -64,9 +87,15 @@ class AssetMatchingController extends Controller
         return view('assets.lost-ids', compact('ids'));
     }
 
-    public function create() { return view('assets.create'); }
+    public function create()
+    {
+        return view('assets.create');
+    }
 
-    public function createId() { return view('assets.create-id'); }
+    public function createId()
+    {
+        return view('assets.create-id');
+    }
 
     public function store(Request $request)
     {
@@ -75,11 +104,23 @@ class AssetMatchingController extends Controller
             'item_category' => 'required',
             'description' => 'required',
             'location_found' => 'required',
-            'image' => 'required|image|max:2048'
+            'cropped_image' => 'nullable|string', // NEW: Accepts the Base64 cropped image
+            'image' => 'nullable|image|max:2048'
         ]);
 
+        if (!$request->filled('cropped_image') && !$request->hasFile('image')) {
+            return back()->withErrors(['image' => 'An image capture is required.']);
+        }
+
         $validated['is_stock_image'] = $request->has('is_stock_image') ? 1 : 0;
-        $validated['image_path'] = $request->file('image')->store('assets', 'public');
+
+        // Handle Base64 Crop OR Standard Image fallback
+        if ($request->filled('cropped_image')) {
+            $validated['image_path'] = $this->saveBase64Image($request->input('cropped_image'));
+        } else {
+            $validated['image_path'] = $request->file('image')->store('assets', 'public');
+        }
+
         $validated['date_lost'] = now();
         $validated['status'] = 'Active';
 
@@ -94,8 +135,17 @@ class AssetMatchingController extends Controller
             'student_id' => 'required|string',
             'program' => 'required|string',
             'location_found' => 'required|string',
-            'image' => 'required|image|max:2048'
+            'cropped_image' => 'nullable|string',
+            'image' => 'nullable|image|max:2048'
         ]);
+
+        if (!$request->filled('cropped_image') && !$request->hasFile('image')) {
+            return back()->withErrors(['image' => 'An ID image is required.']);
+        }
+
+        $imagePath = $request->filled('cropped_image')
+            ? $this->saveBase64Image($request->input('cropped_image'))
+            : $request->file('image')->store('assets', 'public');
 
         $structuredDescription = "NAME: {$request->student_name} | ID: {$request->student_id} | PROGRAM: {$request->program}";
 
@@ -104,7 +154,7 @@ class AssetMatchingController extends Controller
             'description' => $structuredDescription,
             'location_found' => $request->location_found,
             'report_type' => 'Found',
-            'image_path' => $request->file('image')->store('assets', 'public'),
+            'image_path' => $imagePath,
             'status' => 'Active',
             'date_lost' => now(),
         ]);
@@ -135,10 +185,12 @@ class AssetMatchingController extends Controller
         $data = $request->all();
         $data['is_stock_image'] = $request->has('is_stock_image') ? 1 : 0;
 
-        if ($request->hasFile('image')) {
-            if ($item->image_path) {
-                Storage::disk('public')->delete($item->image_path);
-            }
+        // Ensure cropped edits overwrite correctly
+        if ($request->filled('cropped_image')) {
+            if ($item->image_path) Storage::disk('public')->delete($item->image_path);
+            $data['image_path'] = $this->saveBase64Image($request->input('cropped_image'));
+        } elseif ($request->hasFile('image')) {
+            if ($item->image_path) Storage::disk('public')->delete($item->image_path);
             $data['image_path'] = $request->file('image')->store('assets', 'public');
         }
 
@@ -147,70 +199,93 @@ class AssetMatchingController extends Controller
     }
 
     /**
-     * Gemini-Powered Semantic Comparison for the Comparison Analysis View.
+     * Gemini-Powered Semantic & Visual Comparison
      */
     public function compare(Request $request, $id)
     {
         $targetItem = LostItem::findOrFail($id);
 
-        if ($request->hasFile('compare_image')) {
+        if ($request->filled('cropped_image')) {
+            $path = $this->saveBase64Image($request->input('cropped_image'), 'temp');
+            $comparisonImagePath = 'storage/' . $path;
+            $uploadedImagePath = storage_path('app/public/' . $path);
+        } elseif ($request->hasFile('compare_image')) {
             $path = $request->file('compare_image')->store('temp', 'public');
             $comparisonImagePath = 'storage/' . $path;
+            $uploadedImagePath = storage_path('app/public/' . $path);
+        } else {
+            return back()->withErrors(['error' => 'No capture provided.']);
+        }
 
-            if ($targetItem->item_category === 'ID / Identification') {
-                $students = User::select('id', 'name', 'id_number')->get();
-                $processArgs = [
-                    $this->pythonPath,
-                    base_path('resources/scripts/semantic_matcher.py'),
-                    $request->input('manual_name', ''),
-                    $request->input('manual_id', ''),
-                    $request->input('manual_program', ''),
-                    $students->toJson()
-                ];
-            } else {
-                $targetImagePath = storage_path('app/public/' . $targetItem->image_path);
-                $uploadedImagePath = storage_path('app/public/' . $path);
-                $processArgs = [$this->pythonPath, base_path('resources/scripts/visual_matcher.py'), $targetImagePath, $uploadedImagePath];
-            }
-
-            // Sync Windows environment to prevent the RuntimeError and Winsock errors.
-            $env = [
-                'SystemRoot' => 'C:\\Windows',
-                'windir'     => 'C:\\Windows',
-                'HOME'       => 'C:\\Users\\Joss',
-                'USERPROFILE' => 'C:\\Users\\Joss',
-                'GOOGLE_API_KEY' => env('GOOGLE_API_KEY'),
+        // --- THE TRAFFIC COP ---
+        if ($targetItem->item_category === 'ID / Identification') {
+            // 1. THIS IS FOR IDs (Semantic Matcher)
+            $students = User::select('id', 'name', 'id_number')->get();
+            $processArgs = [
+                $this->pythonPath,
+                base_path('resources/scripts/semantic_matcher.py'),
+                $request->input('manual_name', ''),
+                $request->input('manual_id', ''),
+                $request->input('manual_program', ''),
+                $students->toJson()
             ];
+        } else {
+            // 2. THIS IS FOR ALL OTHER LOST ITEMS (Visual Matcher)
+            $targetImagePath = storage_path('app/public/' . $targetItem->image_path);
 
-            $process = new Process($processArgs, null, $env);
-            $process->run();
+            // Base arguments for Python
+            $processArgs = [$this->pythonPath, base_path('resources/scripts/visual_matcher.py'), $targetImagePath, $uploadedImagePath];
 
-            if ($process->isSuccessful()) {
-                $result = json_decode($process->getOutput(), true);
+            // THE FIX: If the admin checked "Is Stock Image" when logging the Lost Item, add the flag!
+            if ($targetItem->is_stock_image) {
+                $processArgs[] = '--stock';
+            }
+        }
 
-                // FIXED: Mapping integer scores to display variables correctly
-                $similarityScore = $result['confidence_score'] ?? 0;
+        $env = [
+            'SystemRoot' => 'C:\\Windows',
+            'windir'     => 'C:\\Windows',
+            'HOME'       => 'C:\\Users\\Joss',
+            'USERPROFILE' => 'C:\\Users\\Joss',
+            'GOOGLE_API_KEY' => env('GOOGLE_API_KEY'),
+        ];
+
+        $process = new Process($processArgs, null, $env);
+        $process->run();
+
+        if ($process->isSuccessful()) {
+            $output = $process->getOutput();
+            $jsonStart = strpos($output, '{');
+            $jsonEnd = strrpos($output, '}') + 1;
+
+            if ($jsonStart !== false) {
+                $cleanJson = substr($output, $jsonStart, $jsonEnd - $jsonStart);
+                $result = json_decode($cleanJson, true);
+
+                $rawScore = $result['confidence_score'] ?? $result['similarity_score'] ?? 0;
+                $similarityScore = ($rawScore > 0 && $rawScore <= 1) ? intval($rawScore * 100) : intval($rawScore);
                 $visualScore = $similarityScore;
 
                 if ($targetItem->item_category === 'ID / Identification' && !empty($result['matched_student_id'])) {
                     $student = User::find($result['matched_student_id']);
                     $breakdown = $result['breakdown'] ?? ("Gemini Verified: " . ($student->name ?? 'Unknown'));
                 } else {
-                    $breakdown = $result['breakdown'] ?? 'Scan complete.';
+                    $breakdown = $result['breakdown'] ?? $result['reason'] ?? 'Visual scan complete.';
                 }
             } else {
                 $similarityScore = 0;
                 $visualScore = 0;
-                $breakdown = "> ERROR: VISION PROCESSOR FAILURE. " . $process->getErrorOutput();
+                $breakdown = "ERROR: No valid JSON output from Vision Processor.";
             }
-
-            // Evaluation threshold
-            $isMatch = $similarityScore >= 75;
-
-            return view('assets.compare', compact('targetItem', 'comparisonImagePath', 'similarityScore', 'isMatch', 'visualScore', 'breakdown'));
+        } else {
+            $similarityScore = 0;
+            $visualScore = 0;
+            $breakdown = "> ERROR: VISION PROCESSOR FAILURE. " . $process->getErrorOutput();
         }
 
-        return back()->withErrors(['error' => 'No capture provided.']);
+        $isMatch = $similarityScore >= 75;
+
+        return view('assets.compare', compact('targetItem', 'comparisonImagePath', 'similarityScore', 'isMatch', 'visualScore', 'breakdown'));
     }
 
     public function confirmMatch($id)

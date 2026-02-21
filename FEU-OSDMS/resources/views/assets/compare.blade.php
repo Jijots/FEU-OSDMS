@@ -32,9 +32,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div class="bg-white p-12 rounded-[4rem] shadow-xl border border-slate-100 text-center relative">
                     <span class="absolute top-10 left-10 text-[10px] font-black text-slate-300 uppercase tracking-widest">Database Record</span>
-                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl">
-                        <img src="{{ $targetItem->image_url }}" class="w-full h-full object-cover" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+
+                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl bg-slate-100 flex items-center justify-center p-4">
+                        <img src="{{ $targetItem->image_url }}" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='{{ asset('images/placeholder.png') }}'">
                     </div>
+
                     <h3 class="text-4xl font-black text-slate-900 mt-10 tracking-tighter">{{ $targetItem->item_category }}</h3>
                 </div>
 
@@ -71,8 +73,9 @@
                     </div>
 
                     <span class="absolute top-10 left-10 text-[10px] font-black text-slate-300 uppercase tracking-widest">Security Capture</span>
-                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl">
-                        <img src="{{ asset($comparisonImagePath) }}" class="w-full h-full object-cover">
+
+                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl bg-slate-100 flex items-center justify-center p-4">
+                        <img src="{{ asset($comparisonImagePath) }}" class="w-full h-full object-contain drop-shadow-md">
                     </div>
 
                     <div class="mt-8 p-6 bg-slate-900 rounded-3xl font-mono text-left border border-slate-800 shadow-inner">
