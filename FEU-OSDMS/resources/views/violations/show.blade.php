@@ -1,105 +1,98 @@
 <x-app-layout>
-    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
-        <div class="flex items-center gap-10">
-            <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <a href="{{ route('dashboard') }}" class="hover:opacity-80 transition-opacity">
-                <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
-            </a>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">System Terminal</p>
-                <p class="text-xs font-black text-[#004d32] tracking-tighter">ADMIN-{{ auth()->id() }}</p>
-            </div>
-            <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse border-4 border-red-50"></div>
-        </div>
-    </div>
+    <div class="max-w-6xl mx-auto px-8 lg:px-12 py-10">
 
-    <div class="py-12 bg-[#F8FAFB]" style="zoom: 0.90;">
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-
-            @if(session('success'))
-                <div class="mb-8 p-6 bg-green-50 border-2 border-green-200 rounded-2xl flex items-center gap-4 shadow-sm">
-                    <p class="text-sm font-black text-green-700 tracking-tight">{{ session('success') }}</p>
-                </div>
-            @endif
-
-            <div class="mb-10 flex items-center justify-between">
-                <div class="flex items-center gap-6">
-                    <a href="{{ route('violations.report') }}" class="p-4 bg-white rounded-full shadow-sm hover:bg-slate-50 transition-colors border border-slate-100">
-                        <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    </a>
-                    <div>
-                        <h1 class="text-5xl font-black text-slate-900 tracking-tighter mb-1">Case #{{ str_pad($violation->id, 4, '0', STR_PAD_LEFT) }}</h1>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Official Incident Dossier</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <a href="{{ route('violations.edit', $violation->id) }}" class="px-8 py-4 bg-[#FECB02] text-[#004d32] rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-sm hover:brightness-110 transition-all">
-                        Update Case Status
-                    </a>
-                    <form action="{{ route('violations.destroy', $violation->id) }}" method="POST" onsubmit="return confirm('Permanently delete this case?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="px-8 py-4 bg-white border border-red-100 text-red-600 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-sm hover:bg-red-50 transition-all">
-                            Delete
-                        </button>
-                    </form>
-                </div>
+        <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b-2 border-slate-200 pb-6">
+            <div>
+                <a href="{{ route('violations.report') }}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#004d32] transition-colors mb-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Violation Reports
+                </a>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Case #{{ str_pad($violation->id, 4, '0', STR_PAD_LEFT) }}</h1>
             </div>
 
-            <div class="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 space-y-10">
+            <div class="flex items-center gap-4">
+                @php
+                    $status = $violation->status;
+                    $statusColors = [
+                        'Pending' => 'bg-amber-100 text-amber-800 border-amber-200',
+                        'Under Review' => 'bg-blue-100 text-blue-800 border-blue-200',
+                        'Resolved' => 'bg-green-100 text-green-800 border-green-200',
+                    ];
+                    $color = $statusColors[$status] ?? 'bg-slate-100 text-slate-800 border-slate-200';
+                @endphp
+                <span class="px-5 py-2.5 rounded-xl text-sm font-bold uppercase tracking-wide border-2 {{ $color }}">
+                    Status: {{ $status }}
+                </span>
 
-                <div class="grid grid-cols-2 gap-8 border-b border-slate-50 pb-8">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Involved Student</p>
-                        <p class="text-2xl font-black text-slate-900">{{ $violation->student->name ?? 'Unknown' }}</p>
-                        <p class="text-xs font-bold text-[#004d32] uppercase tracking-widest mt-1">UID: {{ $violation->student->id_number ?? 'N/A' }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Status</p>
-                        <span class="inline-flex items-center justify-center px-4 py-2 mt-1 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] shadow-sm {{ $violation->status === 'Resolved' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200' }}">
-                            {{ $violation->status }}
-                        </span>
-                    </div>
-                </div>
+                <a href="{{ route('violations.edit', $violation->id) }}" class="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl text-sm hover:bg-[#004d32] transition-colors shadow-sm flex items-center gap-2 border-2 border-transparent">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    Update Case
+                </a>
+            </div>
+        </div>
 
-                <div class="space-y-6 border-b border-slate-50 pb-8">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Offense Category</p>
-                        <p class="text-xl font-bold text-slate-900">{{ $violation->offense_type }}</p>
-                    </div>
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Incident Description</p>
-                        <div class="p-6 bg-[#F8FAFB] rounded-xl border border-slate-100 text-sm font-medium text-slate-700 leading-relaxed">
-                            {{ $violation->description }}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+            <div class="space-y-8">
+
+                <div class="bg-white p-8 rounded-2xl border-2 border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-3 mb-5">Student Information</h3>
+                    <div class="flex items-center gap-5">
+                        <div class="w-16 h-16 bg-slate-100 border-2 border-slate-200 rounded-xl flex items-center justify-center font-extrabold text-2xl text-[#004d32]">
+                            {{ substr($violation->student->name ?? '?', 0, 1) }}
+                        </div>
+                        <div>
+                            <p class="text-xl font-bold text-slate-900">{{ $violation->student->name ?? 'Unknown Student' }}</p>
+                            <p class="text-sm font-semibold text-slate-500 mt-1 font-mono">{{ $violation->student->id_number ?? 'N/A' }}</p>
+                            <p class="text-sm font-semibold text-slate-500 mt-1">{{ $violation->student->program ?? '' }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="space-y-6 bg-slate-50 p-8 rounded-2xl border border-slate-100">
-                    <h3 class="text-[10px] font-black text-[#004d32] uppercase tracking-widest border-b border-slate-200 pb-3">OSD Adjudication & Findings</h3>
-
-                    @if($violation->findings || $violation->final_action)
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Investigator Findings</p>
-                                <p class="text-sm font-bold text-slate-900">{{ $violation->findings ?? 'N/A' }}</p>
-                            </div>
-                            <div>
-                                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Action Taken</p>
-                                <p class="text-sm font-bold text-[#004d32]">{{ $violation->final_action ?? 'N/A' }}</p>
+                <div class="bg-white p-8 rounded-2xl border-2 border-slate-200 shadow-sm">
+                    <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-3 mb-5">Incident Details</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-1">Offense Category</span>
+                            <span class="inline-block px-4 py-1.5 bg-red-50 text-red-700 border-2 border-red-100 rounded-lg text-sm font-bold">
+                                {{ $violation->offense_type }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Description of Event</span>
+                            <div class="bg-slate-50 p-5 rounded-xl border-2 border-slate-100 text-base font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {{ $violation->description }}
                             </div>
                         </div>
-                    @else
-                        <p class="text-xs font-bold text-slate-400 italic">No formal findings or resolutions have been recorded yet. Update the case status to proceed.</p>
-                    @endif
+                    </div>
                 </div>
-
             </div>
+
+            <div class="bg-white p-8 rounded-2xl border-2 border-slate-200 shadow-sm h-fit">
+                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-3 mb-6">OSD Adjudication & Findings</h3>
+
+                @if($violation->findings || $violation->final_action)
+                    <div class="space-y-8">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Investigator Findings</p>
+                            <div class="bg-slate-50 p-5 rounded-xl border-2 border-slate-100 text-base font-medium text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {{ $violation->findings ?? 'No formal findings logged yet.' }}
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-green-50 border-2 border-green-200 rounded-xl">
+                            <p class="text-xs font-bold text-green-700 uppercase tracking-wide mb-2">Final Action Taken</p>
+                            <p class="text-lg font-extrabold text-[#004d32]">{{ $violation->final_action ?? 'Pending final resolution' }}</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="py-12 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                        <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="text-sm font-bold text-slate-500 max-w-xs mx-auto">No formal findings or resolutions have been recorded yet. Click 'Update Case' to adjudicate.</p>
+                    </div>
+                @endif
+            </div>
+
         </div>
     </div>
 </x-app-layout>
