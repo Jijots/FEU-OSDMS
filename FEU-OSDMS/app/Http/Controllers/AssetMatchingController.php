@@ -46,11 +46,11 @@ class AssetMatchingController extends Controller
 
         // 3. Search Bar Logic: Search by Tracking Number, Category, or Location
         if ($search = $request->input('search')) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('tracking_number', 'LIKE', "%{$search}%")
-                  ->orWhere('item_category', 'LIKE', "%{$search}%")
-                  ->orWhere('location_found', 'LIKE', "%{$search}%")
-                  ->orWhere('location_lost', 'LIKE', "%{$search}%");
+                    ->orWhere('item_category', 'LIKE', "%{$search}%")
+                    ->orWhere('location_found', 'LIKE', "%{$search}%")
+                    ->orWhere('location_lost', 'LIKE', "%{$search}%");
             });
         }
 
@@ -113,11 +113,13 @@ class AssetMatchingController extends Controller
         $validated = $request->validate([
             'report_type' => 'required',
             'item_category' => 'required',
+            'item_name' => 'required|string|max:255', // NEW ITEM NAME FIELD
             'description' => 'required',
             'location_found' => 'required',
-            'cropped_image' => 'nullable|string', // NEW: Accepts the Base64 cropped image
+            'cropped_image' => 'nullable|string',
             'image' => 'nullable|image|max:2048'
         ]);
+
 
         if (!$request->filled('cropped_image') && !$request->hasFile('image')) {
             return back()->withErrors(['image' => 'An image capture is required.']);
@@ -290,7 +292,6 @@ class AssetMatchingController extends Controller
                             ]);
                         }
                     }
-
                 } else {
                     $breakdown = $result['breakdown'] ?? $result['reason'] ?? 'Visual scan complete.';
                 }

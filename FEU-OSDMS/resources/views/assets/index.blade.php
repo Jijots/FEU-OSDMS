@@ -10,7 +10,7 @@
                 <a href="{{ route('assets.create', ['type' => 'Missing']) }}" class="px-6 py-3 bg-white border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors shadow-sm text-sm">
                     Log Missing Item
                 </a>
-                <a href="{{ route('assets.create', ['type' => 'Found']) }}" class="px-6 py-3 bg-[#004d32] text-white font-bold rounded-xl hover:bg-green-800 transition-colors shadow-sm text-sm">
+                <a href="{{ route('assets.create', ['type' => 'Found']) }}" class="px-6 py-3 bg-[#004d32] text-white font-bold rounded-xl hover:bg-green-800 transition-colors shadow-sm text-sm border-2 border-transparent">
                     Log Found Item
                 </a>
             </div>
@@ -25,7 +25,7 @@
             <form method="GET" action="{{ route('assets.index') }}" class="relative w-full md:w-96">
                 <input type="hidden" name="type" value="{{ request('type', 'Found') }}">
                 <svg class="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tracking number or category..." class="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-[#004d32] focus:ring-0 text-sm font-semibold transition-colors placeholder:font-medium">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search tracking number or item..." class="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-[#004d32] focus:ring-0 text-sm font-semibold transition-colors placeholder:font-medium">
             </form>
         </div>
 
@@ -35,7 +35,7 @@
                     <thead>
                         <tr class="bg-slate-50 border-b-2 border-slate-200">
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Tracking No.</th>
-                            <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Category</th>
+                            <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Item & Category</th>
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Details</th>
                             <th class="px-8 py-5 text-sm font-bold text-slate-500 uppercase tracking-wide">Status</th>
                             <th class="px-8 py-5 text-right text-sm font-bold text-slate-500 uppercase tracking-wide">Actions</th>
@@ -48,7 +48,8 @@
                                     <span class="text-sm font-bold text-slate-800 tracking-wider">#{{ $item->tracking_number }}</span>
                                 </td>
                                 <td class="px-8 py-5">
-                                    <span class="inline-flex px-3 py-1 rounded-lg text-xs font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">{{ $item->item_category }}</span>
+                                    <p class="text-sm font-bold text-slate-900">{{ $item->item_name ?? 'Unnamed Item' }}</p>
+                                    <span class="inline-flex mt-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">{{ $item->item_category }}</span>
                                 </td>
                                 <td class="px-8 py-5">
                                     <p class="text-sm font-bold text-slate-800">{{ $item->location_found ?? $item->location_lost }}</p>
@@ -67,11 +68,11 @@
                                     <div class="flex items-center justify-end gap-3">
                                         <form method="POST" action="{{ route('assets.destroy', $item->id) }}" onsubmit="return confirm('Delete this record?');">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                            <button type="submit" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border-2 border-transparent hover:border-red-200">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
                                         </form>
-                                        <a href="{{ route('assets.show', $item->id) }}" class="px-6 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-[#004d32] transition-colors shadow-sm">
+                                        <a href="{{ route('assets.show', $item->id) }}" class="px-6 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-[#004d32] transition-colors shadow-sm border-2 border-transparent">
                                             Verify Record
                                         </a>
                                     </div>

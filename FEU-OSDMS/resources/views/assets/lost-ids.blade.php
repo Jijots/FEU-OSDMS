@@ -6,7 +6,7 @@
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">ID Recovery Vault</h1>
                 <p class="text-base text-slate-500 font-medium mt-1">Pending student identification cards requiring visual verification.</p>
             </div>
-            <a href="{{ route('assets.create-id') }}" class="px-6 py-3 bg-[#004d32] text-white font-bold rounded-xl hover:bg-green-800 transition-colors shadow-sm text-sm">
+            <a href="{{ route('assets.create-id') }}" class="px-6 py-3 bg-[#004d32] text-white font-bold rounded-xl hover:bg-green-800 transition-colors shadow-sm text-sm border-2 border-transparent">
                 Log Found ID Card
             </a>
         </div>
@@ -38,7 +38,7 @@
                                 </td>
                                 <td class="px-8 py-5 text-center">
                                     @if(isset($item->confidence))
-                                        <span class="inline-flex px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-yellow-50 text-yellow-700 border border-yellow-200">
+                                        <span class="inline-flex px-4 py-1.5 rounded-lg text-xs font-bold uppercase bg-yellow-50 text-yellow-700 border border-yellow-200 shadow-sm">
                                             Smart Match: {{ $item->confidence * 100 }}%
                                         </span>
                                     @else
@@ -48,7 +48,7 @@
                                     @endif
                                 </td>
                                 <td class="px-8 py-5 text-right">
-                                    <a href="{{ route('assets.show', $item->id) }}" class="px-6 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-[#004d32] transition-colors shadow-sm inline-block">
+                                    <a href="{{ route('assets.show', $item->id) }}" class="px-6 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-[#004d32] transition-colors shadow-sm inline-block border-2 border-transparent">
                                         Scan & Verify
                                     </a>
                                 </td>

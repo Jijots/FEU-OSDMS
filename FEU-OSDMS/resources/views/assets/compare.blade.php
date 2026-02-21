@@ -1,101 +1,96 @@
 <x-app-layout>
-    <div class="sticky top-0 bg-white/95 backdrop-blur-3xl border-b border-slate-100 z-40 px-12 py-6 flex items-center justify-between">
-        <div class="flex items-center gap-10">
-            <button @click="sidebarOpen = !sidebarOpen" class="p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                <svg class="w-7 h-7 text-[#004d32]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-            </button>
-            <a href="{{ route('dashboard') }}" class="hover:opacity-80 transition-opacity">
-                <img src="{{ asset('images/LOGO.png') }}" alt="FEU-OSDMS" class="h-12 w-auto">
-            </a>
-        </div>
-        <div class="flex items-center gap-6">
-            <div class="text-right">
-                <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-1">System Terminal</p>
-                <p class="text-xs font-black text-[#004d32] tracking-tighter">OSD-ADMIN-{{ auth()->id() }}</p>
+    <div class="max-w-7xl mx-auto px-8 lg:px-12 py-12">
+
+        <div class="flex flex-col items-center mb-12 text-center">
+            <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Comparison Analysis</h1>
+
+            <div class="inline-flex items-center gap-3 mt-4 px-6 py-2.5 rounded-full border-2 {{ $isMatch ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700' }}">
+                <span class="w-2.5 h-2.5 rounded-full {{ $isMatch ? 'bg-green-500' : 'bg-red-600' }} animate-pulse"></span>
+                <span class="text-sm font-bold uppercase tracking-wide">
+                    {{ $isMatch ? 'Verification Active' : 'System Alert: Visual Mismatch' }}
+                </span>
             </div>
-            <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse border-4 border-green-50"></div>
         </div>
-    </div>
 
-    <div class="py-12 bg-[#FCFCFC]" style="zoom: 0.75;">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex flex-col items-center mb-16 text-center">
-                <h1 class="text-7xl font-black text-slate-900 tracking-tighter">Comparison Analysis</h1>
-                <div class="flex items-center gap-3 mt-4 px-6 py-2 rounded-full {{ $isMatch ? 'bg-green-50' : 'bg-red-50' }}">
-                    <span class="w-3 h-3 {{ $isMatch ? 'bg-green-500' : 'bg-red-600' }} rounded-full animate-pulse"></span>
-                    <p class="text-[10px] font-black {{ $isMatch ? 'text-[#004d32]' : 'text-red-600' }} uppercase tracking-[0.4em]">
-                        {{ $isMatch ? 'Verification Active' : 'System Alert: Visual Mismatch' }}
-                    </p>
-                </div>
-            </div>
+        <div class="bg-white border-2 border-slate-200 rounded-3xl p-8 lg:p-12 shadow-sm mb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-12">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div class="bg-white p-12 rounded-[4rem] shadow-xl border border-slate-100 text-center relative">
-                    <span class="absolute top-10 left-10 text-[10px] font-black text-slate-300 uppercase tracking-widest">Database Record</span>
-
-                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl bg-slate-100 flex items-center justify-center p-4">
-                        <img src="{{ $targetItem->image_url }}" class="w-full h-full object-contain drop-shadow-md" onerror="this.src='{{ asset('images/placeholder.png') }}'">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+                        <span class="text-sm font-bold text-slate-500 uppercase tracking-wide">Database Record</span>
+                        <span class="text-sm font-bold text-slate-900">{{ $targetItem->item_name ?? $targetItem->item_category }}</span>
                     </div>
 
-                    <h3 class="text-4xl font-black text-slate-900 mt-10 tracking-tighter">{{ $targetItem->item_category }}</h3>
+                    <div class="h-[400px] bg-slate-50 border-4 border-slate-200 rounded-2xl p-6 flex items-center justify-center overflow-hidden shadow-inner">
+                        <img src="{{ $targetItem->image_url }}" onerror="this.src='{{ asset('images/placeholder.png') }}'" class="max-w-full max-h-full object-contain drop-shadow-md">
+                    </div>
                 </div>
 
-                @php $themeColor = $isMatch ? '#004d32' : '#991b1b'; @endphp
-                <div class="bg-white p-12 rounded-[4rem] shadow-2xl border-4 text-center relative" style="border-color: {{ $themeColor }}20;">
-                    <div class="absolute -top-6 -right-6 text-white p-8 rounded-[3rem] shadow-2xl z-20 w-80 text-left" style="background-color: {{ $themeColor }};">
-                        <div class="flex items-center justify-between mb-6">
-                            <div>
-                                <span class="block text-[10px] font-black uppercase tracking-widest opacity-60">Similarity</span>
-                                <span class="text-5xl font-black tracking-tighter">{{ $similarityScore }}%</span>
-                            </div>
-                            <div class="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center">
-                                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="{{ $isMatch ? 'M5 13l4 4L19 7' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' }}"></path></svg>
-                            </div>
-                        </div>
+                <div class="space-y-4 relative">
+                    <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+                        <span class="text-sm font-bold text-[#004d32] uppercase tracking-wide">Live Security Capture</span>
+                    </div>
 
-                        <details class="group border-t border-white/10 pt-5 cursor-pointer" open>
-                            <summary class="list-none flex items-center justify-between text-[11px] font-black uppercase tracking-widest opacity-80">
-                                Analysis Breakdown
-                                <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-width="3"></path></svg>
-                            </summary>
-                            <div class="mt-6 space-y-4">
+                    @php $themeColor = $isMatch ? 'border-green-500' : 'border-red-500'; @endphp
+                    @php $badgeColor = $isMatch ? 'bg-[#004d32]' : 'bg-red-800'; @endphp
+
+                    <div class="h-[400px] bg-slate-50 border-4 {{ $themeColor }} rounded-2xl p-6 flex items-center justify-center relative shadow-inner">
+                        <img src="{{ asset($comparisonImagePath) }}" class="max-w-full max-h-full object-contain drop-shadow-md">
+
+                        <div class="absolute -top-8 -right-4 lg:-right-10 w-72 {{ $badgeColor }} text-white p-6 rounded-2xl shadow-2xl border-4 border-white z-10 transition-all">
+                            <div class="flex items-center justify-between mb-5">
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="text-[10px] font-bold opacity-60 uppercase">Feature Extraction</span>
-                                        <span class="text-[11px] font-black">{{ $visualScore }}%</span>
-                                    </div>
-                                    <div class="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                        <div class="bg-white h-full transition-all duration-1000" style="width: {{ $visualScore }}%"></div>
-                                    </div>
+                                    <span class="block text-xs font-bold text-white/70 uppercase tracking-wide mb-1">Similarity</span>
+                                    <span class="text-4xl font-extrabold">{{ $similarityScore }}%</span>
+                                </div>
+                                <div class="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center shrink-0">
+                                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="{{ $isMatch ? 'M5 13l4 4L19 7' : 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' }}"></path></svg>
                                 </div>
                             </div>
-                        </details>
-                    </div>
 
-                    <span class="absolute top-10 left-10 text-[10px] font-black text-slate-300 uppercase tracking-widest">Security Capture</span>
-
-                    <div class="mt-8 rounded-[3rem] overflow-hidden border-[12px] border-slate-50 aspect-square shadow-2xl bg-slate-100 flex items-center justify-center p-4">
-                        <img src="{{ asset($comparisonImagePath) }}" class="w-full h-full object-contain drop-shadow-md">
-                    </div>
-
-                    <div class="mt-8 p-6 bg-slate-900 rounded-3xl font-mono text-left border border-slate-800 shadow-inner">
-                        <p class="text-[11px] text-green-400 leading-relaxed">
-                            <span class="text-green-500/50 uppercase text-[9px] font-bold tracking-widest block mb-1">Vision Processor V2.0</span>
-                            <span class="opacity-50">$</span> {{ $breakdown }}
-                        </p>
+                            <details class="group border-t-2 border-white/10 pt-4 cursor-pointer" open>
+                                <summary class="list-none flex items-center justify-between text-xs font-bold uppercase tracking-wide text-white/80 hover:text-white transition-colors">
+                                    Analysis Breakdown
+                                    <svg class="w-4 h-4 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
+                                </summary>
+                                <div class="mt-4 space-y-4">
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="text-[10px] font-bold opacity-70 uppercase tracking-wide">Feature Extraction</span>
+                                            <span class="text-xs font-bold">{{ $visualScore }}%</span>
+                                        </div>
+                                        <div class="w-full bg-white/20 h-2 rounded-full overflow-hidden">
+                                            <div class="bg-white h-full transition-all duration-1000" style="width: {{ $visualScore }}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-20 flex justify-center gap-8">
-                <a href="{{ route('assets.index') }}" class="px-12 py-5 font-black text-slate-400 uppercase text-xs tracking-[0.2em] border-2 border-slate-100 rounded-2xl hover:bg-slate-50 no-underline">Discard Results</a>
-                @if ($isMatch)
-                    <form action="{{ route('assets.confirm', $targetItem->id) }}" method="POST">
-                        @csrf
-                        <button type="submit" style="background-color: #004d32;" class="px-20 py-5 rounded-[2rem] text-white font-black uppercase text-xs tracking-[0.2em] shadow-2xl shadow-green-900/30 hover:brightness-110 transition-all">Confirm Integrity Match</button>
-                    </form>
-                @endif
+            <div class="mt-12 p-6 bg-slate-900 rounded-2xl border-4 border-slate-800 shadow-inner font-mono text-left">
+                <span class="text-green-500/50 uppercase text-xs font-bold tracking-widest block mb-2">Vision Processor V2.0</span>
+                <p class="text-sm text-green-400 leading-relaxed font-bold whitespace-pre-wrap"><span class="opacity-50">$</span> {{ $breakdown }}</p>
             </div>
         </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-6">
+            <a href="{{ route('assets.index') }}" class="px-10 py-5 bg-white border-2 border-slate-200 text-slate-600 font-bold text-base rounded-xl hover:bg-slate-50 transition-all text-center shadow-sm">
+                Discard Results
+            </a>
+
+            @if ($isMatch)
+                <form action="{{ route('assets.confirm', $targetItem->id) }}" method="POST" class="flex-1 sm:flex-none">
+                    @csrf
+                    <button type="submit" class="w-full px-12 py-5 bg-[#004d32] text-white font-bold text-base rounded-xl hover:bg-green-800 transition-all shadow-md border-2 border-transparent flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Confirm Integrity Match
+                    </button>
+                </form>
+            @endif
+        </div>
+
     </div>
 </x-app-layout>

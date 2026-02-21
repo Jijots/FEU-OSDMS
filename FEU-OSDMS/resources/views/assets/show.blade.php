@@ -7,15 +7,15 @@
         <div class="mb-8 flex items-center justify-between">
             <div>
                 <a href="{{ route('assets.index') }}" class="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-[#004d32] transition-colors mb-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7m0 0l7-7m-7 h18"></path></svg>
                     Back to Registry
                 </a>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Record #{{ $asset->tracking_number }}</h1>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Record #{{ $item->tracking_number }}</h1>
             </div>
-            @if($asset->status == 'Active')
+            @if($item->status == 'Active')
                 <span class="px-4 py-2 bg-green-100 text-green-700 font-bold rounded-xl text-sm border-2 border-green-200 uppercase">Active Record</span>
             @else
-                <span class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm border-2 border-slate-200 uppercase">{{ $asset->status }}</span>
+                <span class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm border-2 border-slate-200 uppercase">{{ $item->status }}</span>
             @endif
         </div>
 
@@ -27,29 +27,35 @@
                         <span class="text-sm font-bold text-slate-600 uppercase tracking-wide">Original Item Photo</span>
                     </div>
                     <div class="p-6 bg-white flex items-center justify-center min-h-[300px]">
-                        <img src="{{ $asset->image_url }}" alt="Item" class="max-w-full max-h-[350px] object-contain rounded-xl drop-shadow-md">
+                        <img src="{{ $item->image_url }}" alt="Item" class="max-w-full max-h-[350px] object-contain rounded-xl drop-shadow-md">
                     </div>
                 </div>
 
                 <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 shadow-sm">
-                    <h3 class="text-lg font-bold text-slate-800 border-b-2 border-slate-100 pb-4 mb-6">Asset Details</h3>
+                    <div class="flex items-center justify-between border-b-2 border-slate-100 pb-4 mb-6">
+                        <h3 class="text-lg font-bold text-slate-800">Asset Details</h3>
+                        <a href="{{ route('assets.edit', $item->id) }}" class="p-2 text-slate-400 hover:text-[#004d32] border-2 border-transparent hover:border-slate-200 rounded-lg transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </a>
+                    </div>
 
                     <div class="space-y-5">
-                        <div>
-                            <span class="block text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Category</span>
-                            <p class="text-base font-semibold text-slate-900">{{ $asset->item_category }}</p>
+                        <div class="mb-5 pb-5 border-b-2 border-slate-100">
+                            <span class="block text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Item Details</span>
+                            <p class="text-xl font-extrabold text-slate-900">{{ $item->item_name ?? 'Unnamed Item' }}</p>
+                            <span class="inline-flex mt-2 px-3 py-1 rounded-lg text-xs font-bold uppercase bg-slate-100 text-slate-600 border border-slate-200">{{ $item->item_category }}</span>
                         </div>
                         <div>
                             <span class="block text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Location Logged</span>
-                            <p class="text-base font-semibold text-slate-900">{{ $asset->location_found ?? $asset->location_lost }}</p>
+                            <p class="text-base font-semibold text-slate-900">{{ $item->location_found ?? $item->location_lost }}</p>
                         </div>
                         <div>
                             <span class="block text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Date Logged</span>
-                            <p class="text-base font-semibold text-slate-900">{{ $asset->date_found ? \Carbon\Carbon::parse($asset->date_found)->format('F d, Y') : \Carbon\Carbon::parse($asset->date_lost)->format('F d, Y') }}</p>
+                            <p class="text-base font-semibold text-slate-900">{{ $item->date_found ? \Carbon\Carbon::parse($item->date_found)->format('F d, Y') : \Carbon\Carbon::parse($item->date_lost)->format('F d, Y') }}</p>
                         </div>
                         <div>
                             <span class="block text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Description</span>
-                            <p class="text-base font-medium text-slate-700 bg-slate-50 p-4 rounded-xl border-2 border-slate-100 mt-2">{{ $asset->description }}</p>
+                            <p class="text-base font-medium text-slate-700 bg-slate-50 p-4 rounded-xl border-2 border-slate-100 mt-2">{{ $item->description }}</p>
                         </div>
                     </div>
                 </div>
@@ -59,7 +65,7 @@
                 <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 shadow-sm sticky top-32">
 
                     <div class="flex items-center gap-4 border-b-2 border-slate-100 pb-6 mb-8">
-                        <div class="w-12 h-12 bg-[#004d32] rounded-xl flex items-center justify-center shadow-inner">
+                        <div class="w-12 h-12 bg-[#004d32] rounded-xl flex items-center justify-center shadow-inner shrink-0">
                             <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <div>
@@ -68,7 +74,7 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('assets.compare', $asset->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('assets.compare', $item->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <div class="border-4 border-dashed border-slate-200 rounded-2xl p-10 text-center hover:border-[#004d32] hover:bg-slate-50 transition-all cursor-pointer bg-slate-50 mb-6" onclick="document.getElementById('comparison_image').click()" id="uploadWrapper">
@@ -96,7 +102,7 @@
 
                         <input type="hidden" name="cropped_image" id="cropped_image">
 
-                        <button type="submit" id="submitBtn" disabled class="w-full py-5 bg-[#004d32] text-white font-bold text-base rounded-xl opacity-50 cursor-not-allowed flex items-center justify-center gap-3 transition-all">
+                        <button type="submit" id="submitBtn" disabled class="w-full py-5 bg-[#004d32] text-white font-bold text-base rounded-xl opacity-50 cursor-not-allowed flex items-center justify-center gap-3 transition-all border-2 border-transparent">
                             Run Smart Verification Match
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                         </button>
@@ -129,6 +135,7 @@
                     previewWrapper.style.display = 'none';
                     submitBtn.disabled = true;
                     submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    submitBtn.classList.remove('hover:bg-green-800', 'shadow-md');
 
                     const reader = new FileReader();
                     reader.onload = function(event) {
