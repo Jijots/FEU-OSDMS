@@ -55,7 +55,7 @@
             </div>
 
             <div class="lg:col-span-7">
-                <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 shadow-sm sticky top-32">
+                <div class="bg-white border-2 border-slate-200 rounded-2xl p-8 shadow-sm h-fit">
 
                     <div class="flex items-center gap-4 border-b-2 border-slate-100 pb-6 mb-8">
                         <div class="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-inner shrink-0">

@@ -28,61 +28,48 @@ class AssetMatchingController extends Controller
         return $path;
     }
 
-    /**
-     * THE UPGRADE: Added Search, Tab Filtering, and fixed the $items variable.
-     */
     public function index(Request $request)
     {
         $query = LostItem::query();
 
-        // 1. Tab Filter: Toggle between 'Found' and 'Missing' items (Defaults to Found)
-        $type = $request->input('type', 'Found');
+        // THE FIX: Changed the default fallback from 'Found' to 'Lost'
+        $type = $request->input('type', 'Lost');
         $query->where('report_type', $type);
 
-        // 2. Routing: Exclude ID cards from the general 'Found' list because they belong in the ID Vault
+        // 2. Routing: Exclude ID cards from the general 'Found' list
         if ($type === 'Found') {
             $query->where('item_category', '!=', 'ID / Identification');
         }
 
-        // 3. Search Bar Logic: Search by Tracking Number, Category, or Location
+        // 3. Search Bar Logic: Now includes the new `item_name` field!
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('tracking_number', 'LIKE', "%{$search}%")
+                    ->orWhere('item_name', 'LIKE', "%{$search}%")
                     ->orWhere('item_category', 'LIKE', "%{$search}%")
                     ->orWhere('location_found', 'LIKE', "%{$search}%")
                     ->orWhere('location_lost', 'LIKE', "%{$search}%");
             });
         }
 
-        // 4. Send the data to the view as '$items' to match our new Blade file
         $items = $query->latest()->get();
 
         return view('assets.index', compact('items'));
     }
 
-    /**
-     * Automated Recovery Vault Scan for the Sidebar/Dashboard listing.
-     * UPGRADED: 100% PHP Local Hardware Bypass to protect Gemini API Quotas.
-     */
     public function lostIds()
     {
-        // 1. Grab the students from the local database
         $students = User::select('id', 'name', 'id_number')->get();
 
-        // 2. Grab the pending IDs
         $ids = LostItem::where('item_category', 'ID / Identification')
             ->where('report_type', 'Found')
             ->where('status', '!=', 'Claimed')
             ->latest()
             ->get()
             ->map(function ($item) use ($students) {
-
-                // 3. FAST HARDWARE BYPASS (No Python, No Google API Limits!)
-                // Extracts the 9-digit ID number from the text description
                 preg_match('/\d{9}/', $item->description, $matches);
                 $extractedId = !empty($matches) ? $matches[0] : '';
 
-                // 4. Instantly check if that ID exists in your local student list
                 if ($extractedId) {
                     $matchedStudent = $students->firstWhere('id_number', $extractedId);
 
@@ -91,7 +78,6 @@ class AssetMatchingController extends Controller
                         $item->confidence = 1.0; // 100% Match
                     }
                 }
-
                 return $item;
             });
 
@@ -113,13 +99,12 @@ class AssetMatchingController extends Controller
         $validated = $request->validate([
             'report_type' => 'required',
             'item_category' => 'required',
-            'item_name' => 'required|string|max:255', // NEW ITEM NAME FIELD
+            'item_name' => 'required|string|max:255',
             'description' => 'required',
             'location_found' => 'required',
             'cropped_image' => 'nullable|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:5120'
         ]);
-
 
         if (!$request->filled('cropped_image') && !$request->hasFile('image')) {
             return back()->withErrors(['image' => 'An image capture is required.']);
@@ -127,7 +112,6 @@ class AssetMatchingController extends Controller
 
         $validated['is_stock_image'] = $request->has('is_stock_image') ? 1 : 0;
 
-        // Handle Base64 Crop OR Standard Image fallback
         if ($request->filled('cropped_image')) {
             $validated['image_path'] = $this->saveBase64Image($request->input('cropped_image'));
         } else {
@@ -149,7 +133,7 @@ class AssetMatchingController extends Controller
             'program' => 'required|string',
             'location_found' => 'required|string',
             'cropped_image' => 'nullable|string',
-            'image' => 'nullable|image|max:2048'
+            'image' => 'nullable|image|max:5120'
         ]);
 
         if (!$request->filled('cropped_image') && !$request->hasFile('image')) {
@@ -164,6 +148,7 @@ class AssetMatchingController extends Controller
 
         LostItem::create([
             'item_category' => 'ID / Identification',
+            'item_name' => 'Student ID: ' . $request->student_name, // Auto-fills the name for the Database!
             'description' => $structuredDescription,
             'location_found' => $request->location_found,
             'report_type' => 'Found',
@@ -177,13 +162,17 @@ class AssetMatchingController extends Controller
 
     public function show($id)
     {
-        $asset = LostItem::findOrFail($id);
-        if (str_contains($asset->item_category, 'ID')) {
-            preg_match('/\d{9}/', $asset->description, $matches);
+        $item = LostItem::findOrFail($id);
+
+        if (str_contains($item->item_category, 'ID')) {
+            preg_match('/\d{9}/', $item->description, $matches);
             $student = !empty($matches) ? User::where('id_number', $matches[0])->first() : null;
-            return view('assets.show-id', compact('asset', 'student'));
+
+            // Pass it to the view as $asset because show-id.blade uses $asset
+            return view('assets.show-id', ['asset' => $item, 'student' => $student]);
         }
-        return view('assets.show', ['item' => $asset]);
+
+        return view('assets.show', compact('item'));
     }
 
     public function edit($id)
@@ -195,25 +184,29 @@ class AssetMatchingController extends Controller
     public function update(Request $request, $id)
     {
         $item = LostItem::findOrFail($id);
-        $data = $request->all();
-        $data['is_stock_image'] = $request->has('is_stock_image') ? 1 : 0;
 
-        // Ensure cropped edits overwrite correctly
+        $validated = $request->validate([
+            'report_type' => 'required',
+            'item_category' => 'required',
+            'item_name' => 'required|string|max:255',
+            'description' => 'required',
+            'location_found' => 'required',
+        ]);
+
+        $validated['is_stock_image'] = $request->has('is_stock_image') ? 1 : 0;
+
         if ($request->filled('cropped_image')) {
             if ($item->image_path) Storage::disk('public')->delete($item->image_path);
-            $data['image_path'] = $this->saveBase64Image($request->input('cropped_image'));
+            $validated['image_path'] = $this->saveBase64Image($request->input('cropped_image'));
         } elseif ($request->hasFile('image')) {
             if ($item->image_path) Storage::disk('public')->delete($item->image_path);
-            $data['image_path'] = $request->file('image')->store('assets', 'public');
+            $validated['image_path'] = $request->file('image')->store('assets', 'public');
         }
 
-        $item->update($data);
+        $item->update($validated);
         return redirect()->route('assets.index')->with('success', 'Record updated.');
     }
 
-    /**
-     * Gemini-Powered Semantic & Visual Comparison
-     */
     public function compare(Request $request, $id)
     {
         $targetItem = LostItem::findOrFail($id);
@@ -232,7 +225,6 @@ class AssetMatchingController extends Controller
 
         // --- THE TRAFFIC COP ---
         if ($targetItem->item_category === 'ID / Identification') {
-            // 1. THIS IS FOR IDs (Semantic Matcher)
             $students = User::select('id', 'name', 'id_number')->get();
             $processArgs = [
                 $this->pythonPath,
@@ -244,13 +236,9 @@ class AssetMatchingController extends Controller
                 $uploadedImagePath
             ];
         } else {
-            // 2. THIS IS FOR ALL OTHER LOST ITEMS (Visual Matcher)
             $targetImagePath = storage_path('app/public/' . $targetItem->image_path);
-
-            // Base arguments for Python
             $processArgs = [$this->pythonPath, base_path('resources/scripts/visual_matcher.py'), $targetImagePath, $uploadedImagePath];
 
-            // THE FIX: If the admin checked "Is Stock Image" when logging the Lost Item, add the flag!
             if ($targetItem->is_stock_image) {
                 $processArgs[] = '--stock';
             }
@@ -284,7 +272,6 @@ class AssetMatchingController extends Controller
                     $student = User::find($result['matched_student_id']);
                     $breakdown = $result['breakdown'] ?? ("Gemini Verified: " . ($student->name ?? 'Unknown'));
 
-                    // --- CACHING LOGIC ---
                     if ($student && $similarityScore >= 75) {
                         if (!str_contains($targetItem->description, $student->id_number)) {
                             $targetItem->update([

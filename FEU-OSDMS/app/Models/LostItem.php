@@ -7,8 +7,12 @@ use Illuminate\Support\Facades\Storage;
 
 class LostItem extends Model
 {
+    // THE FIX: Explicitly tell Laravel it is safe to save the 'item_name' and 'student_id'
     protected $fillable = [
         'founder_id',
+        'student_id',
+        'tracking_number',
+        'item_name',
         'report_type',
         'item_category',
         'description',
@@ -21,10 +25,23 @@ class LostItem extends Model
         'flagged_for_review'
     ];
 
-    // THE FIX: Tell Laravel that 'date_lost' is a Datetime object, not a string
     protected $casts = [
         'date_lost' => 'datetime',
     ];
+
+    /**
+     * Automatically generate a unique Tracking Number when a record is created.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->tracking_number)) {
+                $model->tracking_number = strtoupper(substr(uniqid('TRK-'), 0, 12));
+            }
+        });
+    }
 
     public function getImageUrlAttribute()
     {
@@ -32,13 +49,9 @@ class LostItem extends Model
             return asset('images/placeholder.png');
         }
 
-        // Clean up any accidental 'public/' prefixes that might have saved to the DB
         $cleanPath = str_replace('public/', '', $this->image_path);
-
-        // Remove 'storage/' if it's already there to prevent 'storage/storage/assets...'
         $cleanPath = str_replace('storage/', '', $cleanPath);
 
-        // Force the correct absolute web path
         return asset('storage/' . $cleanPath);
     }
 }
