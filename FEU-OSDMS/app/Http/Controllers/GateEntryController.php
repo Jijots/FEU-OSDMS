@@ -10,12 +10,23 @@ use Illuminate\Http\Request;
 
 class GateEntryController extends Controller
 {
-    public function index()
+public function index()
     {
         $entries = GateEntry::with('student')
             ->whereDate('created_at', today())
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($entry) {
+                // Calculate the student's lifetime 'Forgot ID' strikes to display to the guard
+                if ($entry->reason === 'Forgot ID' && $entry->student) {
+                    $entry->lifetime_strikes = GateEntry::where('student_id', $entry->student_id)
+                        ->where('reason', 'Forgot ID')
+                        ->count();
+                } else {
+                    $entry->lifetime_strikes = 0;
+                }
+                return $entry;
+            });
 
         return view('gate.index', compact('entries'));
     }

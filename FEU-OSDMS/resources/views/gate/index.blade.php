@@ -73,10 +73,28 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t-2 border-slate-100 sm:border-0">
+                            <div class="flex flex-wrap items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0 pt-4 sm:pt-0 border-t-2 border-slate-100 sm:border-0">
+
                                 <span class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide border-2 {{ $entry->reason === 'Forgot ID' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-blue-50 text-blue-700 border-blue-200' }}">
                                     {{ $entry->reason }}
                                 </span>
+
+                                @if($entry->reason === 'Forgot ID')
+                                    @if($entry->lifetime_strikes >= 3)
+                                        <span class="px-3 py-2 bg-red-100 text-red-800 font-black rounded-lg text-[10px] uppercase tracking-widest border border-red-300 shadow-sm animate-pulse flex items-center gap-1.5">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                                            Strike {{ $entry->lifetime_strikes }} / 3 (Violation Issued)
+                                        </span>
+                                    @elseif($entry->lifetime_strikes == 2)
+                                        <span class="px-3 py-2 bg-orange-100 text-orange-800 font-bold rounded-lg text-[10px] uppercase tracking-widest border border-orange-300 shadow-sm">
+                                            Strike 2 / 3 (Warning)
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-2 bg-amber-50 text-amber-700 font-bold rounded-lg text-[10px] uppercase tracking-widest border border-amber-200 shadow-sm">
+                                            Strike 1 / 3
+                                        </span>
+                                    @endif
+                                @endif
 
                                 <div class="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <a href="{{ route('gate.edit', $entry->id) }}" class="p-2 text-slate-400 hover:text-[#004d32] hover:bg-slate-50 rounded-lg transition-colors border-2 border-transparent hover:border-slate-200">
