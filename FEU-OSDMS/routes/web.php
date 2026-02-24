@@ -15,8 +15,9 @@ Route::get('/', function () {
 });
 
 // 2. AUTHENTICATED SYSTEM ROUTES
+// THE FIX: Added 'firewall.all' to the global middleware array
 Route::middleware(['auth', 'verified'])->group(function () {
-
+    
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 

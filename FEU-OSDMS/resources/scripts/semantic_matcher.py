@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import warnings
+import difflib # Built-in Python library for Semantic Fuzzy Matching
 
 # Suppress warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -19,87 +20,85 @@ def generate_output(match_id, score, msg):
     """The Anti-Crash Output: Always exits with 0 so Laravel can read the error."""
     sys.stdout.flush()
     print(json.dumps({
-        "matched_student_id": match_id if score >= 75 else None,
+        "matched_student_id": match_id if score >= 65 else None, # Lowered passing threshold for OCR inaccuracy
         "confidence_score": int(score),
         "visual_score": int(score),
-        "breakdown": f"Gemini ID Core: {msg}"
+        "breakdown": msg
     }))
     sys.exit(0)
 
-# --- SAFE IMPORTS ---
+# --- SAFE IMPORTS (STRICTLY OFFLINE) ---
 try:
-    import google.generativeai as genai
     import PIL.Image
+    import pytesseract
+    # Configure Tesseract Path
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 except ImportError as e:
-    generate_output(None, 0, f"Critical Library Missing: {str(e)}. Please install it via command prompt.")
+    generate_output(None, 0, f"Critical Library Missing: {str(e)}. Please install via pip.")
 
-# --- AUTHENTICATION ---
-API_KEY = os.getenv('GOOGLE_API_KEY')
-if not API_KEY:
-    generate_output(None, 0, "API Key Missing.")
-
-try:
-    # THE FIX: transport='rest' goes HERE, not in generate_content!
-    genai.configure(api_key=API_KEY, transport='rest')
-    model = genai.GenerativeModel('gemini-2.0-flash')
-except Exception as e:
-    generate_output(None, 0, f"Gemini Config Error: {str(e)}")
-
+def semantic_similarity(ocr_text, target_string):
+    """Calculates Levenshtein Distance similarity (0.0 to 1.0)"""
+    if not ocr_text or not target_string:
+        return 0.0
+    t1 = str(ocr_text).upper().replace(" ", "")
+    t2 = str(target_string).upper().replace(" ", "")
+    return difflib.SequenceMatcher(None, t1, t2).ratio()
 
 if __name__ == "__main__":
     try:
-        # Args mapping (Safely handles empty arrays)
+        # Args mapping
         name_in = sys.argv[1] if len(sys.argv) > 1 else ""
         id_in = sys.argv[2] if len(sys.argv) > 2 else ""
         prog_in = sys.argv[3] if len(sys.argv) > 3 else ""
-        students_json_str = sys.argv[4] if len(sys.argv) > 4 else "[]"
+        json_file_path = sys.argv[4] if len(sys.argv) > 4 else ""
         image_path = sys.argv[5] if len(sys.argv) > 5 else ""
 
-        try:
-            students = json.loads(students_json_str)
-        except Exception:
-            students = [] # Failsafe if Laravel sends broken JSON
+        # Load Database from the temporary file Laravel created
+        students = []
+        if json_file_path and os.path.exists(json_file_path):
+            try:
+                with open(json_file_path, 'r') as f:
+                    students = json.load(f)
+            except Exception:
+                students = []
 
-        # Step 1: Direct Database Check (Lightning Fast Bypass)
+        # ==========================================
+        # TIER 1: DETERMINISTIC MATCH (Hardware)
+        # ==========================================
         for s in students:
             if id_in and str(id_in).strip() == str(s['id_number']).strip():
-                generate_output(s['id'], 100, f"Hardware Match: ID {id_in} verified via Directory.")
+                generate_output(s['id'], 100, f"Tier 1 Hardware Match: ID {id_in} perfectly verified.")
 
-        # Step 2: Gemini ONE-SHOT Batch Request
-        prompt_content = [f"""
-        You are an elite university identity verification AI.
-        Target Identity Data Input: Name: '{name_in}', ID: '{id_in}', Program: '{prog_in}'.
-
-        Search this JSON database of enrolled students:
-        {students_json_str}
-
-        If you find a high-confidence match (e.g. matched photo, or slight typo in name), return a JSON object exactly like this:
-        {{"matched_student_id": <int>, "confidence_score": <int 1-100>, "reason": "<string>"}}
-
-        If absolutely no one matches, return: {{"matched_student_id": null, "confidence_score": 0, "reason": "No directory match."}}
-        """]
-
-        # Safely load the cropped ID photo
+        img = None
         if image_path and os.path.exists(image_path):
             try:
                 img = PIL.Image.open(image_path)
-                prompt_content.append(img)
-                prompt_content[0] += "\nI have also provided a live capture photo of the ID card. Extract the name/ID number from the image and match it against the JSON database."
             except Exception as e:
                 generate_output(None, 0, f"Image Load Failure: {str(e)}")
 
-        # THE FIX: Removed transport='rest' from here
-        response = model.generate_content(
-            prompt_content,
-            generation_config={"response_mime_type": "application/json", "temperature": 0.1}
-        )
+        # ==========================================
+        # TIER 2: LOCAL OFFLINE SEMANTIC MATCH (Tesseract)
+        # ==========================================
+        if img:
+            raw_ocr_text = pytesseract.image_to_string(img)
+            best_score = 0
+            best_match_id = None
 
-        result = json.loads(response.text)
-        score = result.get('confidence_score', 0)
-        match_id = result.get('matched_student_id')
-        reason = result.get('reason', 'Deep semantic scan complete.')
+            for s in students:
+                name_score = semantic_similarity(raw_ocr_text, s['name'])
+                id_score = semantic_similarity(raw_ocr_text, s['id_number'])
+                highest_local = max(name_score, id_score) * 100
 
-        generate_output(match_id, score, reason)
+                if highest_local > best_score:
+                    best_score = highest_local
+                    best_match_id = s['id']
+
+            if best_score >= 65:
+                generate_output(best_match_id, best_score, f"Offline Engine Match (Local OCR): {int(best_score)}% algorithmic confidence.")
+            else:
+                generate_output(None, best_score, "Local Engine Scan Complete: No high-confidence match found in the directory.")
+        else:
+            generate_output(None, 0, "No image provided for offline scan.")
 
     except Exception as e:
-        generate_output(None, 0, f"Runtime Failure: {str(e)}")
+        generate_output(None, 0, f"System Failure: {str(e)}")

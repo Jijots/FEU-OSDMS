@@ -28,7 +28,7 @@ class AssetMatchingController extends Controller
         return $path;
     }
 
-    public function index(Request $request)
+public function index(Request $request)
     {
         $query = LostItem::query();
 
@@ -47,8 +47,8 @@ class AssetMatchingController extends Controller
                 $q->where('tracking_number', 'LIKE', "%{$search}%")
                     ->orWhere('item_name', 'LIKE', "%{$search}%")
                     ->orWhere('item_category', 'LIKE', "%{$search}%")
-                    ->orWhere('location_found', 'LIKE', "%{$search}%")
-                    ->orWhere('location_lost', 'LIKE', "%{$search}%");
+                    ->orWhere('location_found', 'LIKE', "%{$search}%");
+                    // NOTICE: location_lost has been completely removed from here!
             });
         }
 
@@ -226,15 +226,21 @@ class AssetMatchingController extends Controller
         // --- THE TRAFFIC COP ---
         if ($targetItem->item_category === 'ID / Identification') {
             $students = User::select('id', 'name', 'id_number')->get();
+
+            // THE FIX: Save the database to a temporary file instead of passing it in the CLI
+            $jsonFilePath = storage_path('app/temp_students.json');
+            file_put_contents($jsonFilePath, $students->toJson());
+
             $processArgs = [
                 $this->pythonPath,
                 base_path('resources/scripts/semantic_matcher.py'),
                 $request->input('manual_name', ''),
                 $request->input('manual_id', ''),
                 $request->input('manual_program', ''),
-                $students->toJson(),
+                $jsonFilePath, // Pass the FILE PATH, not the raw JSON string!
                 $uploadedImagePath
             ];
+
         } else {
             $targetImagePath = storage_path('app/public/' . $targetItem->image_path);
             $processArgs = [$this->pythonPath, base_path('resources/scripts/visual_matcher.py'), $targetImagePath, $uploadedImagePath];
