@@ -79,5 +79,3 @@ docker-compose exec app php artisan storage:link
 * **`app/`**: Core logic including Models (User, IncidentReport) and Controllers.
 * **`resources/views/`**: Dashboard and Student Directory templates.
 * **`database/seeders/`**: Contains the `DemoDataSeeder` for evaluation.
-
-```
