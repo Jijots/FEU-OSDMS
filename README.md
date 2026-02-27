@@ -64,7 +64,7 @@ docker-compose exec app php artisan storage:link
 
 | Resource | Access Detail |
 | --- | --- |
-| **Web Interface** | [http://localhost:8000] |
+| **Web Interface** | `http://localhost:8000` |
 | **Database Host** | `127.0.0.1` |
 | **Database Port** | `3306` |
 | **User / Pass** | `sail` / `password` |
