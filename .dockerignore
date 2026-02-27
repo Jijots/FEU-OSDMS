@@ -1,4 +1,4 @@
-# Dependency folders (Docker will install these itself inside the container)
+# Dependency folders
 /node_modules
 /vendor
 
@@ -14,9 +14,10 @@ storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*.log
-bootstrap/cache/*
+# Only ignore contents, keep the directory
+bootstrap/cache/
 
-# Docker files themselves
+# Docker files
 Dockerfile
 docker-compose.yml
 .dockerignore
