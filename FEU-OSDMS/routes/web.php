@@ -17,7 +17,7 @@ Route::get('/', function () {
 // 2. AUTHENTICATED SYSTEM ROUTES
 // THE FIX: Added 'firewall.all' to the global middleware array
 Route::middleware(['auth', 'verified'])->group(function () {
-    
+
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -36,12 +36,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/students/import', [StudentProfileController::class, 'import'])->name('students.import'); // NEW IMPORT ROUTE
     Route::get('/students/{student_id}', [StudentProfileController::class, 'show'])->name('students.show');
 
-    // --- DISCIPLINARY HUB (Violations) ---
+// --- DISCIPLINARY HUB (Violations) ---
     Route::get('/violations/report', [ViolationReportController::class, 'index'])->name('violations.report');
     Route::get('/violations/create', [ViolationController::class, 'create'])->name('violations.create');
     Route::post('/violations', [ViolationController::class, 'store'])->name('violations.store');
 
     // VIOLATION CRUD ROUTES
+    // THE FIX: Here is the missing NTE route!
+    Route::get('/violations/{id}/nte', [ViolationController::class, 'generateNTE'])->name('violations.nte');
+
     Route::get('/violations/{id}', [ViolationController::class, 'show'])->name('violations.show');
     Route::get('/violations/{id}/edit', [ViolationController::class, 'edit'])->name('violations.edit');
     Route::put('/violations/{id}', [ViolationController::class, 'update'])->name('violations.update');

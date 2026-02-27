@@ -57,7 +57,7 @@
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Severity Level</label>
                         <select name="severity" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl p-3 text-base font-semibold focus:border-[#004d32] focus:ring-0" required>
-                            <option value="Routine">Routine / Low</option>
+                            <option value="Routine">Low</option>
                             <option value="High">High Priority</option>
                             <option value="Critical">Critical Emergency</option>
                         </select>

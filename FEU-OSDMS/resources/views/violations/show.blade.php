@@ -32,6 +32,11 @@
                     </button>
                 </form>
 
+                <a href="{{ route('violations.nte', $violation->id) }}" target="_blank" class="px-6 py-2.5 bg-white text-[#004d32] border-2 border-[#004d32] font-bold rounded-xl text-sm hover:bg-green-50 transition-colors shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Generate NTE
+                </a>
+
                 <a href="{{ route('violations.edit', $violation->id) }}" class="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl text-sm hover:bg-[#004d32] transition-colors shadow-sm flex items-center gap-2 border-2 border-transparent">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
                     Update Case

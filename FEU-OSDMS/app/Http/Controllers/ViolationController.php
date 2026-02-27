@@ -83,4 +83,14 @@ class ViolationController extends Controller
 
         return redirect()->route('violations.report')->with('success', 'Disciplinary record permanently deleted.');
     }
+
+    // GENERATE PDF/PRINT: Notice to Explain
+    public function generateNTE($id)
+    {
+        // We load the violation, the student it belongs to, and the officer who reported it
+        $violation = Violation::with(['student', 'reporter'])->findOrFail($id);
+
+        // We will return a special, blank print layout (no navbars, just the document)
+        return view('violations.nte', compact('violation'));
+    }
 }

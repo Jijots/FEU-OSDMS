@@ -32,7 +32,7 @@
                     stroke-width="2.5">
                     <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <span class="text-base">Asset Management</span>
+                <span class="text-base">Lost & Found</span>
             </a>
 
             <a href="{{ route('assets.lost-ids') }}"
@@ -40,7 +40,7 @@
                 <div
                     class="w-2.5 h-2.5 rounded-full {{ request()->routeIs('assets.lost-ids') ? 'bg-[#FECB02] shadow-[0_0_8px_rgba(254,203,2,0.8)]' : 'bg-white/30' }}">
                 </div>
-                <span class="text-base">ID Recovery Vault</span>
+                <span class="text-base">ID Recovery</span>
             </a>
         </div>
 
