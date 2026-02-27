@@ -1,4 +1,3 @@
-```markdown
 # 🎓 FEU-OSDMS
 ### Online Student Disciplinary Management System
 
