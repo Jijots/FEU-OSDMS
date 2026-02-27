@@ -15,7 +15,21 @@
             @csrf
 
             <div>
-                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">1. Reporter Information</h3>
+                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">1. Involved Student</h3>
+                <div class="bg-slate-50 p-6 rounded-2xl border-2 border-slate-100">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Assign Incident to Student</label>
+                    <select name="student_id" class="w-full bg-white border-2 border-slate-200 rounded-xl p-3 text-base font-semibold focus:border-[#004d32] focus:ring-0 appearance-none" required>
+                        <option value="">-- Select involved student --</option>
+                        @foreach(\App\Models\User::where('role', 'student')->orderBy('name')->get() as $student)
+                            <option value="{{ $student->id }}">{{ $student->name }} ({{ $student->id_number }})</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-slate-400 mt-2 font-medium italic">* This incident will appear on this student's disciplinary history and the dashboard counters.</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">2. Reporter Information</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Full Name</label>
@@ -33,7 +47,7 @@
             </div>
 
             <div>
-                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">2. Incident Details</h3>
+                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">3. Incident Details</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Date of Incident</label>
@@ -71,7 +85,7 @@
             </div>
 
             <div>
-                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">3. Photographic Evidence (Optional)</h3>
+                <h3 class="text-sm font-bold text-[#004d32] uppercase tracking-wide border-b-2 border-slate-100 pb-2 mb-4">4. Photographic Evidence (Optional)</h3>
                 <input type="file" name="evidence" accept="image/*" class="w-full bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl p-6 text-sm font-semibold text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-[#004d32] file:text-white hover:file:bg-green-800 transition-all cursor-pointer">
             </div>
 

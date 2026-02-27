@@ -1,0 +1,26 @@
+# Dependency folders (Docker will install these itself inside the container)
+/node_modules
+/vendor
+
+# Sensitive local configurations
+.env
+
+# Git files
+.git
+.gitignore
+
+# Laravel specific caches and logs
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*.log
+bootstrap/cache/*
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# OS generated files
+.DS_Store
+Thumbs.db

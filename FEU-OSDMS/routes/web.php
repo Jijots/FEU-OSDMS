@@ -8,7 +8,9 @@ use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\ViolationController;
 use App\Http\Controllers\ViolationReportController;
 use App\Http\Controllers\ConfiscatedItemController;
+use App\Http\Controllers\IncidentReportController; // Added this import
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 
 // 1. ROOT REDIRECT
 Route::get('/', function () {
@@ -16,60 +18,85 @@ Route::get('/', function () {
 });
 
 // 2. AUTHENTICATED SYSTEM ROUTES
-// THE FIX: Added 'firewall.all' to the global middleware array
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
- // --- INTELLITHINGS MODULE (Asset Management & AI Matching) ---
-    // Custom workflow routes MUST go above the resource
+    // --- INTELLITHINGS MODULE (Asset Management & AI Matching) ---
+    // ARCHIVE ROUTES (Must be above resource/id routes)
+    Route::get('/assets/archived', [AssetMatchingController::class, 'archived'])->name('assets.archived');
+    Route::post('/assets/{id}/restore', [AssetMatchingController::class, 'restore'])->name('assets.restore');
+    Route::delete('/assets/{id}/force-delete', [AssetMatchingController::class, 'forceDelete'])->name('assets.force-delete');
+
     Route::post('assets/{id}/compare', [AssetMatchingController::class, 'compare'])->name('assets.compare');
     Route::post('assets/{id}/confirm', [AssetMatchingController::class, 'confirmMatch'])->name('assets.confirm');
     Route::get('/assets/id-recovery', [AssetMatchingController::class, 'lostIds'])->name('assets.lost-ids');
     Route::get('/assets/id-recovery/create', [AssetMatchingController::class, 'createId'])->name('assets.create-id');
     Route::post('/assets/id-recovery/store', [AssetMatchingController::class, 'storeId'])->name('assets.store-id');
-    // Resource handles: index, create, store, show, edit, update, destroy
+    // Resource handles: index, create, store, show, edit, update, destroy (Soft Delete)
     Route::resource('assets', AssetMatchingController::class);
 
-    // THE NEW EVIDENCE LOCKER ROUTES
+    // --- EVIDENCE LOCKER (Confiscated Items) ---
+    // ARCHIVE ROUTES
+    Route::get('/confiscated-items/archived', [ConfiscatedItemController::class, 'archived'])->name('confiscated-items.archived');
+    Route::post('/confiscated-items/{id}/restore', [ConfiscatedItemController::class, 'restore'])->name('confiscated-items.restore');
+    Route::delete('/confiscated-items/{id}/force-delete', [ConfiscatedItemController::class, 'forceDelete'])->name('confiscated-items.force-delete');
+    // Resource Routes
     Route::resource('confiscated-items', ConfiscatedItemController::class);
 
     // --- STUDENT PROFILES & SEARCH ---
     Route::get('/students', [StudentProfileController::class, 'index'])->name('students.index');
-    Route::post('/students/import', [StudentProfileController::class, 'import'])->name('students.import'); // NEW IMPORT ROUTE
-    Route::get('/students/{student_id}', [StudentProfileController::class, 'show'])->name('students.show');
+    Route::post('/students/import', [StudentProfileController::class, 'import'])->name('students.import');
+    Route::get('/students/{student}', [StudentProfileController::class, 'show'])->name('students.show');
+    Route::get('/students/{student}/edit', [StudentProfileController::class, 'edit'])->name('students.edit');
+    Route::put('/students/{student}', [StudentProfileController::class, 'update'])->name('students.update');
+    Route::delete('/students/{student}', [StudentProfileController::class, 'destroy'])->name('students.destroy');
 
-// --- DISCIPLINARY HUB (Violations) ---
+    // --- DISCIPLINARY HUB (Violations) ---
     Route::get('/violations/report', [ViolationReportController::class, 'index'])->name('violations.report');
+
+    // ARCHIVE ROUTES (Must be above /{id} routes)
+    Route::get('/violations/archived', [ViolationController::class, 'archived'])->name('violations.archived');
+    Route::post('/violations/{id}/restore', [ViolationController::class, 'restore'])->name('violations.restore');
+    Route::delete('/violations/{id}/force-delete', [ViolationController::class, 'forceDelete'])->name('violations.force-delete');
+
     Route::get('/violations/create', [ViolationController::class, 'create'])->name('violations.create');
     Route::post('/violations', [ViolationController::class, 'store'])->name('violations.store');
-
-    // VIOLATION CRUD ROUTES
-    // THE FIX: Here is the missing NTE route!
     Route::get('/violations/{id}/nte', [ViolationController::class, 'generateNTE'])->name('violations.nte');
-
     Route::get('/violations/{id}', [ViolationController::class, 'show'])->name('violations.show');
     Route::get('/violations/{id}/edit', [ViolationController::class, 'edit'])->name('violations.edit');
     Route::put('/violations/{id}', [ViolationController::class, 'update'])->name('violations.update');
-    Route::delete('/violations/{id}', [ViolationController::class, 'destroy'])->name('violations.destroy');
+    Route::delete('/violations/{id}', [ViolationController::class, 'destroy'])->name('violations.destroy'); // Soft Delete
 
     // --- GATE ENTRY TERMINAL (CRUD) ---
-    // Added index and store routes to fix the "Route not found" error
     Route::get('/gate-entry', [GateEntryController::class, 'index'])->name('gate.index');
-    Route::post('/gate-entry', [GateEntryController::class, 'store'])->name('gate.store');
 
-    // Additional Log Management
+    // ARCHIVE ROUTES
+    Route::get('/gate-entry/archived', [GateEntryController::class, 'archived'])->name('gate.archived');
+    Route::post('/gate-entry/{id}/restore', [GateEntryController::class, 'restore'])->name('gate.restore');
+    Route::delete('/gate-entry/{id}/force-delete', [GateEntryController::class, 'forceDelete'])->name('gate.force-delete');
+
+    Route::post('/gate-entry', [GateEntryController::class, 'store'])->name('gate.store');
     Route::get('/gate-entry/{id}/edit', [GateEntryController::class, 'edit'])->name('gate.edit');
     Route::put('/gate-entry/{id}', [GateEntryController::class, 'update'])->name('gate.update');
-    Route::delete('/gate-entry/{id}', [GateEntryController::class, 'destroy'])->name('gate.destroy');
+    Route::delete('/gate-entry/{id}', [GateEntryController::class, 'destroy'])->name('gate.destroy'); // Soft Delete
+
+    // --- INCIDENT REPORTS ---
+    // ARCHIVE ROUTES
+    Route::get('/incidents/archived', [IncidentReportController::class, 'archived'])->name('incidents.archived');
+    Route::post('/incidents/{id}/restore', [IncidentReportController::class, 'restore'])->name('incidents.restore');
+    Route::delete('/incidents/{id}/force-delete', [IncidentReportController::class, 'forceDelete'])->name('incidents.force-delete');
+    // Resource Routes
+    Route::resource('incidents', IncidentReportController::class);
 
     // --- USER ACCOUNT MANAGEMENT ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::resource('incidents', App\Http\Controllers\IncidentReportController::class);
+    // --- REPORTS ---
+    Route::get('/reports/hotspots', [ReportController::class, 'exportHotspots'])->name('reports.hotspots');
 });
 
 require __DIR__ . '/auth.php';

@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -31,9 +32,22 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
+    /**
+     * Relationship: Disciplinary violations assigned to this student.
+     */
     public function violations()
     {
         return $this->hasMany(Violation::class, 'student_id');
+    }
+
+    /**
+     * NEW: Relationship for Incident Reports.
+     * This fixes the "Call to undefined method incidentReports()" error.
+     */
+    public function incidentReports()
+    {
+        // Using 'student_id' to match your violations and lostItems structure
+        return $this->hasMany(IncidentReport::class, 'student_id');
     }
 
     /**
@@ -45,7 +59,7 @@ class User extends Authenticatable
     }
 
     /**
-     * (Optional) Items lost by this user. You may need a 'student_id' in your lost_items table for this.
+     * Items lost by this user.
      */
     public function lostItems()
     {

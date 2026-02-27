@@ -10,8 +10,9 @@ use Illuminate\Http\Request;
 
 class GateEntryController extends Controller
 {
-public function index()
+    public function index()
     {
+        // Automatically hides soft-deleted (archived) entries
         $entries = GateEntry::with('student')
             ->whereDate('created_at', today())
             ->latest()
@@ -29,6 +30,20 @@ public function index()
             });
 
         return view('gate.index', compact('entries'));
+    }
+
+    /**
+     * VIEW THE ARCHIVES (New Method)
+     */
+    public function archived()
+    {
+        // Retrieves ONLY the soft-deleted gate entries
+        $entries = GateEntry::onlyTrashed()
+            ->with('student')
+            ->latest('deleted_at')
+            ->get();
+
+        return view('gate.archives', compact('entries'));
     }
 
     public function store(Request $request)
@@ -100,10 +115,36 @@ public function index()
         return redirect()->route('gate.index')->with('success', 'Log updated.');
     }
 
+    /**
+     * ARCHIVE RECORD (Soft Delete)
+     */
     public function destroy($id)
     {
         $entry = GateEntry::findOrFail($id);
-        $entry->delete();
-        return redirect()->route('gate.index')->with('success', 'Record removed.');
+        $entry->delete(); // This now moves it to the archive
+
+        return redirect()->route('gate.index')->with('success', 'Log successfully moved to Archives.');
+    }
+
+    /**
+     * RESTORE RECORD (New Method)
+     */
+    public function restore($id)
+    {
+        $entry = GateEntry::withTrashed()->findOrFail($id);
+        $entry->restore();
+
+        return redirect()->route('gate.archived')->with('success', 'Log restored to the active records.');
+    }
+
+    /**
+     * PERMANENT DELETE (New Method)
+     */
+    public function forceDelete($id)
+    {
+        $entry = GateEntry::withTrashed()->findOrFail($id);
+        $entry->forceDelete();
+
+        return redirect()->route('gate.archived')->with('success', 'Log permanently deleted from the system.');
     }
 }

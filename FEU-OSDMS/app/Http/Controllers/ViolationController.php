@@ -75,13 +75,51 @@ class ViolationController extends Controller
         return redirect()->route('violations.show', $violation->id)->with('success', 'Case dossier updated successfully.');
     }
 
-    // DELETE: Remove the infraction from the system
+    /**
+     * VIEW THE ARCHIVES (New Method)
+     */
+    public function archived()
+    {
+        // Retrieves ONLY the soft-deleted violation records
+        $violations = Violation::onlyTrashed()
+            ->with(['student', 'reporter'])
+            ->latest('deleted_at')
+            ->get();
+
+        return view('violations.archives', compact('violations'));
+    }
+
+    /**
+     * ARCHIVE RECORD (Soft Delete)
+     */
     public function destroy($id)
     {
         $violation = Violation::findOrFail($id);
-        $violation->delete();
+        $violation->delete(); // This now moves it to the archive instead of wiping it
 
-        return redirect()->route('violations.report')->with('success', 'Disciplinary record permanently deleted.');
+        return redirect()->route('violations.report')->with('success', 'Disciplinary record securely moved to the Archives.');
+    }
+
+    /**
+     * RESTORE RECORD (New Method)
+     */
+    public function restore($id)
+    {
+        $violation = Violation::withTrashed()->findOrFail($id);
+        $violation->restore();
+
+        return redirect()->route('violations.archived')->with('success', 'Disciplinary record restored to active status.');
+    }
+
+    /**
+     * PERMANENT DELETE (New Method)
+     */
+    public function forceDelete($id)
+    {
+        $violation = Violation::withTrashed()->findOrFail($id);
+        $violation->forceDelete();
+
+        return redirect()->route('violations.archived')->with('success', 'Disciplinary record permanently expunged from the system.');
     }
 
     // GENERATE PDF/PRINT: Notice to Explain

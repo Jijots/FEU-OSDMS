@@ -8,16 +8,24 @@ use Illuminate\Support\Facades\Storage;
 
 class IncidentReportController extends Controller
 {
+    /**
+     * DISPLAY ACTIVE REPORTS
+     */
     public function index(Request $request)
     {
+        // Eloquent automatically hides soft-deleted items here
         $query = IncidentReport::query();
 
+        // 1. Search Logic
         if ($search = $request->input('search')) {
-            $query->where('reporter_name', 'LIKE', "%{$search}%")
-                  ->orWhere('incident_location', 'LIKE', "%{$search}%")
-                  ->orWhere('incident_category', 'LIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('reporter_name', 'LIKE', "%{$search}%")
+                    ->orWhere('incident_location', 'LIKE', "%{$search}%")
+                    ->orWhere('incident_category', 'LIKE', "%{$search}%");
+            });
         }
 
+        // 2. Dashboard Filter Logic (Matches dashboard clicks)
         if ($status = $request->input('status')) {
             $query->where('status', $status);
         }
@@ -26,33 +34,53 @@ class IncidentReportController extends Controller
         return view('incidents.index', compact('incidents'));
     }
 
+    /**
+     * VIEW THE ARCHIVES (Retrieves only soft-deleted items)
+     */
+    public function archived(Request $request)
+    {
+        $query = IncidentReport::onlyTrashed();
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('reporter_name', 'LIKE', "%{$search}%")
+                    ->orWhere('incident_location', 'LIKE', "%{$search}%")
+                    ->orWhere('incident_category', 'LIKE', "%{$search}%");
+            });
+        }
+
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+
+        $incidents = $query->latest('deleted_at')->get();
+        return view('incidents.archives', compact('incidents'));
+    }
+
     public function create()
     {
         return view('incidents.create');
     }
 
+    /**
+     * STORE NEW REPORT
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'student_id' => 'required|exists:users,id', // NEW: Must select a student
             'reporter_name' => 'required|string',
-            'reporter_email' => 'nullable|email',
-            'reporter_affiliation' => 'nullable|string',
-            'incident_date' => 'required|date',
-            'incident_location' => 'required|string',
-            'incident_category' => 'required|string',
-            'severity' => 'required|string',
-            'description' => 'required|string',
-            'evidence' => 'nullable|image|max:5120' // Max 5MB
+            // ... rest of your validation ...
         ]);
 
         if ($request->hasFile('evidence')) {
             $validated['evidence_path'] = $request->file('evidence')->store('evidence', 'public');
         }
 
-        unset($validated['evidence']);
         $validated['status'] = 'Pending Review';
 
-        IncidentReport::create($validated);
+        IncidentReport::create($validated); // This will now save the student_id
+
         return redirect()->route('incidents.index')->with('success', 'Incident report successfully logged.');
     }
 
@@ -66,6 +94,9 @@ class IncidentReportController extends Controller
         return view('incidents.edit', compact('incident'));
     }
 
+    /**
+     * UPDATE STATUS OR ACTION TAKEN
+     */
     public function update(Request $request, IncidentReport $incident)
     {
         $incident->update([
@@ -76,12 +107,42 @@ class IncidentReportController extends Controller
         return redirect()->route('incidents.show', $incident)->with('success', 'Incident record updated successfully.');
     }
 
+    /**
+     * ARCHIVE RECORD (Soft Delete)
+     */
     public function destroy(IncidentReport $incident)
     {
+        // Evidence is preserved in archives for potential restoration
+        $incident->delete();
+
+        return redirect()->route('incidents.index')->with('success', 'Incident record securely moved to the Archives.');
+    }
+
+    /**
+     * RESTORE RECORD FROM ARCHIVES
+     */
+    public function restore($id)
+    {
+        $incident = IncidentReport::withTrashed()->findOrFail($id);
+        $incident->restore();
+
+        return redirect()->route('incidents.archived')->with('success', 'Incident record restored to active status.');
+    }
+
+    /**
+     * PERMANENT DELETE (Wipes DB and physical storage)
+     */
+    public function forceDelete($id)
+    {
+        $incident = IncidentReport::withTrashed()->findOrFail($id);
+
+        // Delete physical photo file from storage disk
         if ($incident->evidence_path) {
             Storage::disk('public')->delete($incident->evidence_path);
         }
-        $incident->delete();
-        return redirect()->route('incidents.index')->with('success', 'Incident record deleted.');
+
+        $incident->forceDelete();
+
+        return redirect()->route('incidents.archived')->with('success', 'Incident record and evidence permanently expunged.');
     }
 }

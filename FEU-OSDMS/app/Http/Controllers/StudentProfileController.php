@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class StudentProfileController extends Controller
 {
@@ -16,9 +17,13 @@ class StudentProfileController extends Controller
         $search = $request->input('search');
 
         $students = User::where('role', 'student')
+            // This ensures the counts are available for the view
+            ->withCount(['violations', 'lostItems', 'incidentReports as incidents_count'])
             ->when($search, function ($query, $search) {
-                return $query->where('id_number', 'like', "%{$search}%")
-                             ->orWhere('name', 'like', "%{$search}%");
+                return $query->where(function ($q) use ($search) {
+                    $q->where('id_number', 'like', "%{$search}%")
+                        ->orWhere('name', 'like', "%{$search}%");
+                });
             })
             ->latest()
             ->paginate(10);
@@ -74,5 +79,55 @@ class StudentProfileController extends Controller
     {
         $student = User::with(['violations', 'lostItems'])->findOrFail($student_id);
         return view('students.show', compact('student'));
+    }
+
+    /**
+     * NEW: Show the form for editing the student's profile.
+     */
+    public function edit($id)
+    {
+        $student = User::where('role', 'student')->findOrFail($id);
+        return view('students.edit', compact('student'));
+    }
+
+    /**
+     * NEW: Update the student's profile in the database.
+     */
+    public function update(Request $request, $id)
+    {
+        $student = User::where('role', 'student')->findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'id_number' => [
+                'required',
+                'string',
+                Rule::unique('users')->ignore($student->id)
+            ],
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->ignore($student->id)
+            ],
+            'program_code' => 'nullable|string',
+            'specialization' => 'nullable|string',
+        ]);
+
+        $student->update($validated);
+
+        return redirect()->route('students.index')
+            ->with('success', "Profile for {$student->name} has been updated successfully.");
+    }
+
+    /**
+     * NEW: Remove the student from the directory.
+     */
+    public function destroy($id)
+    {
+        $student = User::where('role', 'student')->findOrFail($id);
+        $student->delete();
+
+        return redirect()->route('students.index')
+            ->with('success', "Student record removed from the directory.");
     }
 }

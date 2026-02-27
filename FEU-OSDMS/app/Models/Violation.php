@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; // Added for archiving
 
 class Violation extends Model
 {
+    use SoftDeletes; // Enabled SoftDeletes trait
+
     protected $fillable = [
         'student_id',
         'reporter_id', // Matches your migration

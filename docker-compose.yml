@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  # The Laravel App
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_DATABASE: feu_osdms
+      DB_USERNAME: sail
+      DB_PASSWORD: password
+
+  # The MySQL Database
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: feu_osdms
+      MYSQL_USER: sail
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "3306:3306"

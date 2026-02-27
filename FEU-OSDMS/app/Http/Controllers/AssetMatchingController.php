@@ -28,33 +28,59 @@ class AssetMatchingController extends Controller
         return $path;
     }
 
-public function index(Request $request)
+    public function index(Request $request)
     {
+        // Automatically excludes archived (soft-deleted) items
         $query = LostItem::query();
 
-        // THE FIX: Changed the default fallback from 'Found' to 'Lost'
         $type = $request->input('type', 'Lost');
         $query->where('report_type', $type);
 
-        // 2. Routing: Exclude ID cards from the general 'Found' list
         if ($type === 'Found') {
             $query->where('item_category', '!=', 'ID / Identification');
         }
 
-        // 3. Search Bar Logic: Now includes the new `item_name` field!
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('tracking_number', 'LIKE', "%{$search}%")
                     ->orWhere('item_name', 'LIKE', "%{$search}%")
                     ->orWhere('item_category', 'LIKE', "%{$search}%")
                     ->orWhere('location_found', 'LIKE', "%{$search}%");
-                    // NOTICE: location_lost has been completely removed from here!
             });
         }
 
         $items = $query->latest()->get();
 
         return view('assets.index', compact('items'));
+    }
+
+    /**
+     * VIEW THE ARCHIVES (New Method)
+     */
+    public function archived(Request $request)
+    {
+        // 'onlyTrashed' retrieves only the archived records
+        $query = LostItem::onlyTrashed();
+
+        $type = $request->input('type', 'Lost');
+        $query->where('report_type', $type);
+
+        if ($type === 'Found') {
+            $query->where('item_category', '!=', 'ID / Identification');
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('tracking_number', 'LIKE', "%{$search}%")
+                    ->orWhere('item_name', 'LIKE', "%{$search}%")
+                    ->orWhere('item_category', 'LIKE', "%{$search}%")
+                    ->orWhere('location_found', 'LIKE', "%{$search}%");
+            });
+        }
+
+        $items = $query->latest('deleted_at')->get();
+
+        return view('assets.archives', compact('items'));
     }
 
     public function lostIds()
@@ -148,7 +174,7 @@ public function index(Request $request)
 
         LostItem::create([
             'item_category' => 'ID / Identification',
-            'item_name' => 'Student ID: ' . $request->student_name, // Auto-fills the name for the Database!
+            'item_name' => 'Student ID: ' . $request->student_name,
             'description' => $structuredDescription,
             'location_found' => $request->location_found,
             'report_type' => 'Found',
@@ -168,7 +194,6 @@ public function index(Request $request)
             preg_match('/\d{9}/', $item->description, $matches);
             $student = !empty($matches) ? User::where('id_number', $matches[0])->first() : null;
 
-            // Pass it to the view as $asset because show-id.blade uses $asset
             return view('assets.show-id', ['asset' => $item, 'student' => $student]);
         }
 
@@ -227,7 +252,6 @@ public function index(Request $request)
         if ($targetItem->item_category === 'ID / Identification') {
             $students = User::select('id', 'name', 'id_number')->get();
 
-            // THE FIX: Save the database to a temporary file instead of passing it in the CLI
             $jsonFilePath = storage_path('app/temp_students.json');
             file_put_contents($jsonFilePath, $students->toJson());
 
@@ -237,7 +261,7 @@ public function index(Request $request)
                 $request->input('manual_name', ''),
                 $request->input('manual_id', ''),
                 $request->input('manual_program', ''),
-                $jsonFilePath, // Pass the FILE PATH, not the raw JSON string!
+                $jsonFilePath,
                 $uploadedImagePath
             ];
 
@@ -310,13 +334,45 @@ public function index(Request $request)
         return redirect()->route('assets.index')->with('success', 'Asset integrity confirmed.');
     }
 
+    /**
+     * ARCHIVE RECORD (Soft Delete)
+     */
     public function destroy($id)
     {
         $item = LostItem::findOrFail($id);
+
+        // WE NO LONGER DELETE THE IMAGE HERE!
+        // We want to keep the image in case we restore the record.
+        $item->delete();
+
+        return redirect()->route('assets.index')->with('success', 'Asset successfully moved to the Archives.');
+    }
+
+    /**
+     * RESTORE RECORD (New Method)
+     */
+    public function restore($id)
+    {
+        $item = LostItem::withTrashed()->findOrFail($id);
+        $item->restore();
+
+        return redirect()->route('assets.archived')->with('success', 'Asset restored to active inventory.');
+    }
+
+    /**
+     * PERMANENT DELETE (New Method)
+     */
+    public function forceDelete($id)
+    {
+        $item = LostItem::withTrashed()->findOrFail($id);
+
+        // NOW we permanently delete the physical image file
         if ($item->image_path) {
             Storage::disk('public')->delete($item->image_path);
         }
-        $item->delete();
-        return redirect()->route('assets.index')->with('success', 'Asset deleted.');
+
+        $item->forceDelete();
+
+        return redirect()->route('assets.archived')->with('success', 'Asset permanently deleted.');
     }
 }

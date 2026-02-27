@@ -10,10 +10,17 @@
                 <p class="text-sm text-slate-500 mt-1 font-bold uppercase tracking-widest">Confiscated Asset Chain-of-Custody</p>
             </div>
 
-            <a href="{{ route('confiscated-items.create') }}" class="px-6 py-3 bg-red-800 text-white font-bold rounded-xl shadow-lg hover:bg-red-900 transition-all flex items-center gap-2 active:scale-95 border-2 border-transparent focus:ring-4 focus:ring-red-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-                Log Confiscated Item
-            </a>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('confiscated-items.archived') }}" class="px-5 py-3 bg-slate-100 border-2 border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition-colors shadow-sm text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                    Archives
+                </a>
+
+                <a href="{{ route('confiscated-items.create') }}" class="px-6 py-3 bg-red-800 text-white font-bold rounded-xl shadow-lg hover:bg-red-900 transition-all flex items-center gap-2 active:scale-95 border-2 border-transparent focus:ring-4 focus:ring-red-200 text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+                    Log Confiscated Item
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -89,7 +96,14 @@
                                     <span class="px-3 py-1.5 bg-slate-100 text-slate-800 border border-slate-300 rounded-lg text-xs font-extrabold uppercase tracking-wide">Disposed</span>
                                 @endif
                             </td>
-                            <td class="p-5 text-right">
+                            <td class="p-5 text-right flex items-center justify-end gap-3">
+                                <form method="POST" action="{{ route('confiscated-items.destroy', $item->id) }}" onsubmit="return confirm('Are you sure you want to archive this evidence record?');">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border-2 border-transparent hover:border-red-200">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+
                                 <a href="{{ route('confiscated-items.edit', $item->id) }}" class="inline-flex items-center gap-1 text-sm font-bold text-red-600 hover:text-red-900 transition-colors">
                                     Update Status
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>

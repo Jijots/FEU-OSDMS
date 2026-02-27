@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\Eloquent\SoftDeletes; // Added for archiving
 
 class LostItem extends Model
 {
+    use SoftDeletes; // Enabled SoftDeletes trait
+
     // THE FIX: Explicitly tell Laravel it is safe to save the 'item_name' and 'student_id'
     protected $fillable = [
         'founder_id',
