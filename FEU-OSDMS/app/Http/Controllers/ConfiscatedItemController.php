@@ -17,7 +17,7 @@ class ConfiscatedItemController extends Controller
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
             $query->where('item_name', 'like', "%{$search}%")
-                  ->orWhere('student_id', 'like', "%{$search}%");
+                ->orWhere('student_id', 'like', "%{$search}%");
         }
 
         $items = $query->paginate(10);
@@ -30,29 +30,38 @@ class ConfiscatedItemController extends Controller
         return view('confiscated.create');
     }
 
-    // 3. SECURELY STORE THE RECORD
+   // 3. SECURELY STORE THE RECORD (Now with Photo Support!)
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'nullable|exists:users,id_number',
+            // THE FIX: Removed 'exists:users,id_number' so officers can log ANY ID or name.
+            'student_id' => 'nullable|string|max:255',
             'item_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'storage_location' => 'nullable|string|max:255',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096', // Max 4MB Image
         ]);
+
+        // Handle the Photo Upload
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            // Stores it in storage/app/public/evidence_photos
+            $photoPath = $request->file('photo')->store('evidence_photos', 'public');
+        }
 
         ConfiscatedItem::create([
             'student_id' => $request->student_id,
             'item_name' => $request->item_name,
             'description' => $request->description,
-            // Automatically log the Admin who is logged in! Zero tampering.
+            'photo_path' => $photoPath, // Save the path to the DB
             'confiscated_by' => Auth::user()->name,
             'confiscated_date' => now(),
             'storage_location' => $request->storage_location,
-            'status' => 'Safekeeping', // Default strict status
+            'status' => 'Safekeeping',
         ]);
 
         return redirect()->route('confiscated-items.index')
-            ->with('success', 'Contraband successfully secured in the Evidence Locker.');
+            ->with('success', 'Contraband successfully secured and photographic evidence attached.');
     }
 
     // 4. VIEW ITEM TO UPDATE CHAIN-OF-CUSTODY (Return or Dispose)

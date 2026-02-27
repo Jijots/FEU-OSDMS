@@ -50,10 +50,23 @@
                         @forelse($items as $item)
                         <tr class="hover:bg-slate-50 transition-colors">
                             <td class="p-5 font-semibold text-slate-800">{{ \Carbon\Carbon::parse($item->confiscated_date)->format('M d, Y') }}</td>
+
                             <td class="p-5">
-                                <p class="font-extrabold text-slate-900 text-base">{{ $item->item_name }}</p>
-                                <p class="text-xs text-slate-500 truncate max-w-[200px] mt-0.5">{{ $item->description ?? 'No extra details provided.' }}</p>
+                                <div class="flex items-center gap-4">
+                                    @if($item->photo_path)
+                                        <img src="{{ Storage::url($item->photo_path) }}" alt="Evidence" class="w-12 h-12 rounded-lg object-cover border border-slate-200 shadow-sm">
+                                    @else
+                                        <div class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                    @endif
+                                    <div>
+                                        <p class="font-extrabold text-slate-900 text-base">{{ $item->item_name }}</p>
+                                        <p class="text-xs text-slate-500 truncate max-w-[200px] mt-0.5">{{ $item->description ?? 'No extra details provided.' }}</p>
+                                    </div>
+                                </div>
                             </td>
+
                             <td class="p-5">
                                 @if($item->student)
                                     <p class="font-bold text-slate-800">{{ $item->student->name }}</p>
@@ -78,7 +91,7 @@
                             </td>
                             <td class="p-5 text-right">
                                 <a href="{{ route('confiscated-items.edit', $item->id) }}" class="inline-flex items-center gap-1 text-sm font-bold text-red-600 hover:text-red-900 transition-colors">
-                                    Update Custody
+                                    Update Status
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </a>
                             </td>

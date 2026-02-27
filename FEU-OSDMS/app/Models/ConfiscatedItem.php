@@ -13,6 +13,7 @@ class ConfiscatedItem extends Model
         'student_id',
         'item_name',
         'description',
+        'photo_path',
         'confiscated_by',
         'confiscated_date',
         'storage_location',
