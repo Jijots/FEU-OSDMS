@@ -1,27 +1,12 @@
-# Dependency folders
 /node_modules
 /vendor
-
-# Sensitive local configurations
 .env
-
-# Git files
 .git
-.gitignore
-
-# Laravel specific caches and logs
 storage/framework/cache/data/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*.log
-# Only ignore contents, keep the directory
 bootstrap/cache/
-
-# Docker files
 Dockerfile
 docker-compose.yml
 .dockerignore
-
-# OS generated files
-.DS_Store
-Thumbs.db

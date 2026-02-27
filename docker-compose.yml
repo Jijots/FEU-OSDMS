@@ -1,6 +1,4 @@
-version: '3.8'
 services:
-  # The Laravel App
   app:
     build:
       context: .
@@ -17,7 +15,6 @@ services:
       DB_USERNAME: sail
       DB_PASSWORD: password
 
-  # The MySQL Database
   db:
     image: mysql:8.0
     environment:
