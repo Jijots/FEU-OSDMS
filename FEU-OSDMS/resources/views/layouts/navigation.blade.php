@@ -44,6 +44,7 @@
             </a>
         </div>
 
+
         <div class="pt-6 pb-3">
             <p class="px-6 text-sm font-bold text-green-200/60 uppercase tracking-wider mb-4">Records & Security</p>
 
@@ -68,7 +69,7 @@
             </a>
 
             <a href="{{ route('violations.report') }}"
-                class="flex items-center gap-5 px-6 py-4 rounded-xl transition-all {{ request()->routeIs('violations.*') ? $activeClass : $inactiveClass }}">
+                class="flex items-center gap-5 px-6 py-4 rounded-xl transition-all mb-3 {{ request()->routeIs('violations.*') ? $activeClass : $inactiveClass }}">
                 <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     stroke-width="2.5">
                     <path
@@ -76,8 +77,9 @@
                 </svg>
                 <span class="text-base">Violations</span>
             </a>
+
             <a href="{{ route('incidents.index') }}"
-                class="flex items-center gap-5 px-6 py-4 rounded-xl transition-all {{ request()->routeIs('incidents.*') ? $activeClass : $inactiveClass }}">
+                class="flex items-center gap-5 px-6 py-4 rounded-xl transition-all mb-3 {{ request()->routeIs('incidents.*') ? $activeClass : $inactiveClass }}">
                 <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     stroke-width="2.5">
                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -85,6 +87,16 @@
                 </svg>
                 <span class="text-base">Incident Reports</span>
             </a>
+
+            <a href="{{ route('confiscated-items.index') }}"
+                class="flex items-center gap-5 px-6 py-4 rounded-xl transition-all {{ request()->routeIs('confiscated-items.*') ? $activeClass : $inactiveClass }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                </svg>
+                <span class="text-base">Confiscated Items</span>
+            </a>
+
         </div>
     </div>
 

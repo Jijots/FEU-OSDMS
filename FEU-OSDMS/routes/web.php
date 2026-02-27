@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentProfileController;
 use App\Http\Controllers\ViolationController;
 use App\Http\Controllers\ViolationReportController;
+use App\Http\Controllers\ConfiscatedItemController;
 use Illuminate\Support\Facades\Route;
 
 // 1. ROOT REDIRECT
@@ -21,7 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- DASHBOARD ---
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // --- INTELLITHINGS MODULE (Asset Management & AI Matching) ---
+ // --- INTELLITHINGS MODULE (Asset Management & AI Matching) ---
     // Custom workflow routes MUST go above the resource
     Route::post('assets/{id}/compare', [AssetMatchingController::class, 'compare'])->name('assets.compare');
     Route::post('assets/{id}/confirm', [AssetMatchingController::class, 'confirmMatch'])->name('assets.confirm');
@@ -30,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/assets/id-recovery/store', [AssetMatchingController::class, 'storeId'])->name('assets.store-id');
     // Resource handles: index, create, store, show, edit, update, destroy
     Route::resource('assets', AssetMatchingController::class);
+
+    // THE NEW EVIDENCE LOCKER ROUTES
+    Route::resource('confiscated-items', ConfiscatedItemController::class);
 
     // --- STUDENT PROFILES & SEARCH ---
     Route::get('/students', [StudentProfileController::class, 'index'])->name('students.index');
